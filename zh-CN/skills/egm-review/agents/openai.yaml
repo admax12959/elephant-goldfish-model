@@ -1,0 +1,7 @@
+# 原文路径: skills/egm-review/agents/openai.yaml
+interface:
+  display_name: "EGM Review"
+  short_description: "用新鲜上下文评审员对设计进行压力测试"
+  icon_small: "./assets/icon.svg"
+  icon_large: "./assets/icon.svg"
+  brand_color: "#E86E00"

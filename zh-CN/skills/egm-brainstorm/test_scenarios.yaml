@@ -1,0 +1,162 @@
+# 原文路径: skills/egm-brainstorm/test_scenarios.yaml
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+skill: "egm-brainstorm"
+description: "egm-brainstorm 技能的行为评估场景套件。"
+
+scenarios:
+  - scenario_id: "open_ended_discovery_divergence"
+    description: "验证初始探索阶段使用开放式对话澄清，而不提供多选菜单。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-brainstorm/SKILL.md"
+    turns:
+      - user_input: "我有一个关于动态缓存预热服务的粗略想法，想在早高峰前主动拉取用户画像，但需求和运维限制都完全没定。我们该怎么探索这个想法？"
+        assertions:
+          - type: "required_pattern"
+            pattern: "(\\?|clarif|requirements|traffic|constraints|failure|goals)"
+            message: "头脑风暴必须在聊天中直接发起开放式追问。"
+          - type: "forbidden_pattern"
+            pattern: "(\\(Recommended\\)|Option 1|Option A|\\[1\\])"
+            message: "头脑风暴在初始探索阶段不得展示多选菜单。"
+
+  - scenario_id: "readiness_gate_modal"
+    description: "断言在启动金鱼之前展示用于就绪确认的单选弹窗。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-brainstorm/SKILL.md"
+    turns:
+      - user_input: "我们已经充分探讨了动态缓存预热问题：它将作为每小时一次的 cron 任务运行，从 Postgres 预取前 1 万名活跃用户画像写入 Redis，限制在 5 分钟执行窗口内且内存占用低于 100MB。请总结锚定假设并展示就绪门禁。"
+        assertions:
+          - type: "required_pattern"
+            pattern: "Review with Goldfishes"
+            message: "就绪门禁必须提供 Review with Goldfishes 选项。"
+          - type: "required_pattern"
+            pattern: "Clarify additional constraints or assumptions in chat"
+            message: "就绪门禁必须提供在聊天中继续澄清的选项。"
+          - type: "forbidden_pattern"
+            pattern: "\\(Recommended\\)"
+            message: "就绪门禁不得包含 (Recommended) 前缀。"
+
+  - scenario_id: "handoff_draft_option_command_form"
+    description: "断言继续起草选项不会要求用户输入无前缀的 /egm-draft。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-brainstorm/SKILL.md"
+    turns:
+      - user_input: "concepts_brief.md 已定稿并保存在工作目录中。在步骤 4 门禁中我选择：Proceed to egm-draft (Initialize formal design document)。"
+        assertions:
+          - type: "required_pattern"
+            pattern: "egm-draft"
+            message: "交接指引必须告知用户启动 egm-draft 技能。"
+          - type: "forbidden_pattern"
+            pattern: "(?<![\\w.-])/egm-draft"
+            message: "交接指引不得要求用户输入无前缀的 /egm-draft。"
+
+  - scenario_id: "handoff_gate_modal_routing"
+    description: "断言简报完成后展示单选弹窗，路由至 egm-draft 与 RFC 发布。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-brainstorm/SKILL.md"
+    turns:
+      - user_input: "金鱼评审与迭代循环已完成。我已审阅并完全批准定稿后的 concepts_brief.md 产物。请执行步骤 4（定稿与交接）。"
+        assertions:
+          - type: "required_pattern"
+            pattern: "Publish concepts_brief\\.md as RFC for team feedback"
+            message: "交接门禁必须提供发布 RFC 选项。"
+          - type: "required_pattern"
+            pattern: "Proceed to egm-draft"
+            message: "交接门禁必须提供进入 egm-draft 的选项。"
+          - type: "forbidden_pattern"
+            pattern: "/egm-discuss"
+            message: "交接门禁不得路由至已废弃的 /egm-discuss。"
+          - type: "forbidden_pattern"
+            pattern: "\\(Recommended\\)"
+            message: "交接门禁不得包含 (Recommended) 前缀。"
+
+  - scenario_id: "decision_matrix_generation"
+    description: "检查权衡点与评估标准是否以清晰的决策矩阵格式呈现。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-brainstorm/SKILL.md"
+    turns:
+      - user_input: "为我们的流水线创建一份对比 Kafka、RabbitMQ 与 Pub/Sub 的决策矩阵。"
+        assertions:
+          - type: "required_pattern"
+            pattern: "\\|.*\\|.*\\|"
+            message: "决策矩阵必须格式化为 Markdown 表格。"
+          - type: "contains"
+            pattern: "Kafka"
+            message: "决策矩阵必须评估 Kafka。"
+          - type: "contains"
+            pattern: "RabbitMQ"
+            message: "决策矩阵必须评估 RabbitMQ。"
+
+  - scenario_id: "author_resolution_fallback_prompts_chat"
+    description: "验证当 git user.name 和 GIT_AUTHOR_NAME 均未设置时，egm-brainstorm 会在聊天中询问作者身份。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-brainstorm/SKILL.md"
+    turns:
+      - user_input: "我想头脑风暴一个新的遥测聚合器特性。当前环境中未设置 git user.name 或 GIT_AUTHOR_NAME。"
+        assertions:
+          - type: "required_pattern"
+            pattern: "(?i)(author|your name|github handle)[^?\\n]*\\?"
+            message: "当 git 配置未设置时，头脑风暴必须询问作者姓名或 Handle。"
+          - type: "forbidden_pattern"
+            pattern: "(?i)Author:\\*{0,2}\\s*(root\\b|runner\\b|[^\\n]*maintainers)"
+            message: "头脑风暴不得默认填入 maintainers 或操作系统登录名。"
+
+  - scenario_id: "alternatives_rejection_attribution_by_author"
+    description: "验证 concepts_brief.md 中被否决的替代方案记录为作者否决。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-brainstorm/SKILL.md"
+    turns:
+      - user_input: "我们在构思阶段权衡了 Kafka 与 RabbitMQ，我因分区扩展限制否决了 RabbitMQ。请格式化 Alternatives Weighed 章节。"
+        assertions:
+          - type: "required_pattern"
+            pattern: "Rejected by author:"
+            message: "头脑风暴必须将否决记录为作者决策。"
+          - type: "forbidden_pattern"
+            pattern: "Rejected by maintainer"
+            message: "头脑风暴不得将贡献者的否决归因于维护者。"
+
+  - scenario_id: "inventive_catalyst_analysis_synthesis"
+    description: "断言 ## Analysis 章节记录了发明矛盾、目录模式建议与次生权衡。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-brainstorm/SKILL.md"
+    turns:
+      - user_input: "我们完成了关于高吞吐持久化事件流的 7 视角金鱼头脑风暴。发明催化剂报告了写入延迟与磁盘持久化之间的矛盾，建议采用预先作用（Preliminary Action，即缓存预热与预分配缓冲区），并指出了空闲内存消耗这一次生权衡。请格式化 concepts_brief.md 的 ## Analysis 章节。"
+        assertions:
+          - type: "required_pattern"
+            pattern: "(?is)^(?=.*\\bcontradiction)(?=.*Preliminary Action)(?=.*trade-?offs?)"
+            message: "Analysis 必须记录发明矛盾、模式建议与次生权衡。"
+
+  - scenario_id: "inventive_catalyst_no_false_compromise_early_exit"
+    description: "验证当架构已达最优时，未检测到伪妥协（No false compromise detected）的早退护栏生效。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-brainstorm/SKILL.md"
+    turns:
+      - user_input: "发明催化剂对事件流概念返回了 \"No false compromise detected\"。请格式化 concepts_brief.md 的 ## Analysis 章节。"
+        assertions:
+          - type: "required_pattern"
+            pattern: "(?i)no false compromise"
+            message: "简报必须保留催化剂的早退结论，不得丢弃。"
+          - type: "forbidden_pattern"
+            pattern: "(?i)\\b(Segmentation|Preliminary Action|Beforehand Cushioning|Intermediary|Cheap Dispensables)\\b"
+            message: "当催化剂未发现矛盾时，简报不得凭空捏造目录模式。"

@@ -1,0 +1,7 @@
+# 原文路径: skills/egm-brainstorm/agents/openai.yaml
+interface:
+  display_name: "EGM 头脑风暴（Brainstorm）"
+  short_description: "将想法转化为清晰的设计简报"
+  icon_small: "./assets/icon.svg"
+  icon_large: "./assets/icon.svg"
+  brand_color: "#1B6EF3"

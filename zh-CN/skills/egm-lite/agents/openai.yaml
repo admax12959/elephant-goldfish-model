@@ -1,0 +1,7 @@
+# 原文路径: skills/egm-lite/agents/openai.yaml
+interface:
+  display_name: "EGM Lite"
+  short_description: "快速即席设计与代码迭代"
+  icon_small: "./assets/icon.svg"
+  icon_large: "./assets/icon.svg"
+  brand_color: "#1B6EF3"

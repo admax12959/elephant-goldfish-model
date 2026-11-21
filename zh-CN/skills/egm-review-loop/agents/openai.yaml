@@ -1,0 +1,7 @@
+# 原文路径: skills/egm-review-loop/agents/openai.yaml
+interface:
+  display_name: "EGM Review loop"
+  short_description: "反复执行设计评审并裁决修复发现"
+  icon_small: "./assets/icon.svg"
+  icon_large: "./assets/icon.svg"
+  brand_color: "#E86E00"

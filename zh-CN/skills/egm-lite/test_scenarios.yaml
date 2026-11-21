@@ -1,0 +1,665 @@
+# 原文路径: skills/egm-lite/test_scenarios.yaml
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+skill: "egm-lite"
+description: "egm-lite 技能的行为评估场景套件。"
+
+scenarios:
+  - scenario_id: "critique_pause_gating"
+    description: "验证智能体在执行变更操作前会暂停等待用户确认。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-lite/SKILL.md"
+    turns:
+      - user_input: "/egm-lite 修复网络请求处理器中日志消息 'Conection timed out' 的拼写错误。"
+        assertions:
+          - type: "required_pattern"
+            pattern: ">\\s*\\*\\*BLUF(?:\\*\\*)?:"
+            message: "批判暂停响应必须以 > **BLUF:** 引用块开头。"
+          - type: "required_pattern"
+            pattern: "\\n---\\n"
+            message: >-
+              BLUF 引用块必须以 --- 水平分隔线结束。
+          - type: "required_pattern"
+            pattern: "(checklist|Proceed|critique)"
+            message: "智能体在编码前必须提示用户继续或生成清单。"
+          - type: "forbidden_pattern"
+            pattern: "```java\\npublic class"
+            message: "智能体不得在批判暂停阶段实现完整代码。"
+          - type: "forbidden_pattern"
+            pattern: "egm_lite_alternatives\\.md"
+            message: >-
+              智能体对单一路径任务必须省略 egm_lite_alternatives.md。
+          - type: "forbidden_pattern"
+            pattern: "(Model Rule:|STOP WORK IMMEDIATELY|FORBIDDEN FROM CALLING)"
+            message: >-
+              内部运行暂停指令不得回显到聊天中。
+
+  - scenario_id: "checklist_generation_and_pause"
+    description: "测试结构化执行清单的创建。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-lite/SKILL.md"
+    turns:
+      - user_input: "/egm-lite 按 EGM-Lite 第 2 节执行，这是我的指令：checklist。这一步我们的计划是什么？"
+        assertions:
+          - type: "required_pattern"
+            pattern: "(checklist|exec|Proceed)"
+            message: "智能体必须产出清单指引并在执行前暂停。"
+          - type: "required_pattern"
+            pattern: "(- \\[ \\]|task list|checkbox)"
+            message: "智能体必须将清单条目格式化为 GFM 任务列表复选框。"
+          - type: "required_pattern"
+            pattern: "(clickable|link|\\[[^\\]]+\\]\\([^\\)]+\\))"
+            message: >-
+              智能体必须将清单文件目标与引用格式化为可点击链接。
+          - type: "forbidden_pattern"
+            pattern: "(Model Rule:|STOP WORK IMMEDIATELY|FORBIDDEN FROM CALLING)"
+            message: >-
+              内部运行暂停指令不得回显到聊天中。
+
+  - scenario_id: "goldfish_adversarial_review"
+    description: "断言对抗式批判不含奉承性形容词。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-lite/SKILL.md"
+    turns:
+      - user_input: "/egm-lite 给我们的 RPC 客户端添加不带指数退避或抖动（jitter）的重试循环。"
+        assertions:
+          - type: "forbidden_pattern"
+            pattern: "(brilliant|great idea|perfect|excellent|smart)"
+            message: "对抗式批判不得包含奉承性形容词。"
+          - type: "forbidden_pattern"
+            pattern: "(\\[✅\\s*LGTM\\]|\\bLGTM\\b)"
+            message: >-
+              报告缺陷的对抗式评审必须严格省略 LGTM。
+          - type: "required_pattern"
+            pattern: "(backoff|jitter|stampede|thundering)"
+            message: "批判必须指出缺少退避或惊群效应风险。"
+
+  - scenario_id: "external_contract_verification"
+    description: "验证会检查公共接口与外部契约。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-lite/SKILL.md"
+    turns:
+      - user_input: "/egm-lite 我们希望依赖 RpcClientConfig 中的 enable_fast_path=true。你能验证这个参数吗？"
+        assertions:
+          - type: "required_pattern"
+            pattern: "(UNVERIFIED|contract|verification|evidence)"
+            message: "智能体必须标记未验证假设或说明契约验证策略。"
+
+  - scenario_id: "post_review_synchronization_and_gate"
+    description: "验证评审发现的同步与分诊。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-lite/SKILL.md"
+    turns:
+      - user_input: "Goldfish Reviewer 子智能体针对 RequestHandler 改动返回了两条发现：(1) handleRequest 解引用 config 时缺少空值检查；(2) 重试路径吞掉了超时错误。请按 EGM-Lite 处理该子智能体响应。"
+        assertions:
+          - type: "required_pattern"
+            pattern: ">\\s*\\*\\*BLUF(?:\\*\\*)?:"
+            message: "裁决响应必须以 > **BLUF:** 引用块开头。"
+          - type: "required_pattern"
+            pattern: "\\[🛠️\\s*\\d+\\s*FIX\\s*\\|\\s*🛡️\\s*\\d+\\s*CONTEST\\]"
+            message: >-
+              裁决 BLUF 必须以 [🛠️ X FIX | 🛡️ Y CONTEST] 状态徽章开头。
+          - type: "required_pattern"
+            pattern: "\\n---\\n"
+            message: >-
+              BLUF 引用块必须以 --- 水平分隔线结束。
+          - type: "required_pattern"
+            pattern: "(findings|agree|checklist)"
+            message: "智能体必须汇总发现并询问用户将哪些条目纳入清单。"
+          - type: "required_pattern"
+            pattern: "(PROPOSE FIX|CONTEST)"
+            message: "智能体必须将评审后发现分诊为 PROPOSE FIX 与 CONTEST。"
+          - type: "required_pattern"
+            pattern: "\\[\\d+\\]\\s*\\[P[0-3]\\]"
+            message: "智能体必须使用连续序号与优先级标签 [X] [PY] 标记发现。"
+          - type: "forbidden_pattern"
+            pattern: "(edit_file|write_file|replace_file_content|write_to_file)"
+            message: >-
+              分诊回合必须保持纯展示型，不得调用变更工具。
+
+  - scenario_id: "post_review_lgtm_completion"
+    description: >-
+      验证干净的金鱼评审通过会以冠以 [✅ LGTM] 的 > **BLUF:** 开头，并总结已完成文件与测试。
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-lite/SKILL.md"
+    turns:
+      - user_input: >-
+          Goldfish Reviewer 子智能体完成了对 RequestHandler 改动的评审，返回了显式
+          [✅ LGTM] 且零发现。请按 EGM-Lite 处理该子智能体响应。
+        assertions:
+          - type: "required_pattern"
+            pattern: ">\\s*\\*\\*BLUF(?:\\*\\*)?:"
+            message: "干净 LGTM 响应必须以 > **BLUF:** 引用块开头。"
+          - type: "required_pattern"
+            pattern: "\\[✅\\s*LGTM\\]"
+            message: "干净 LGTM 的 BLUF 必须以 [✅ LGTM] 状态徽章开头。"
+          - type: "required_pattern"
+            pattern: "\\n---\\n"
+            message: >-
+              BLUF 引用块必须以 --- 水平分隔线结束。
+
+  - scenario_id: "post_review_checklist_update"
+    description: "断言动态清单状态更新。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-lite/SKILL.md"
+    turns:
+      - user_input: "/egm-lite 我们同意将空值检查和 RPC 验证加入清单，并对线程安全误报提出异议。指令：checklist。"
+        assertions:
+          - type: "required_pattern"
+            pattern: "(null|RPC|checklist)"
+            message: "智能体必须将商定条目更新到清单。"
+          - type: "required_pattern"
+            pattern: "(CONTEST|thread-safety|false positive)"
+            message: "智能体必须在清单中记录已接受的 CONTEST 理由。"
+
+  - scenario_id: "fast_path_exec_initializes_checklist"
+    description: "验证从裁决门禁发起快速路径 exec 会在执行前创建或更新 egm_lite_checklist.md。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-lite/SKILL.md"
+    turns:
+      - user_input: "Goldfish Reviewer 子智能体对 RequestHandler 改动返回了一条发现（重试缺少抖动），且我们在 EGM-Lite 第 5 节中同意修复。指令：exec。请描述你的确切步骤。"
+        assertions:
+          - type: "required_pattern"
+            pattern: "egm_lite_checklist\\.md"
+            message: "快速路径 exec 仍必须在编码前创建或更新 egm_lite_checklist.md。"
+          - type: "required_pattern"
+            pattern: "- \\[x\\]"
+            message: "快速路径 exec 必须用 - [x] 标记已完成的清单条目。"
+          - type: "required_pattern"
+            pattern: "(review|goldfish)"
+            message: "快速路径 exec 仍必须在 review 或 goldfish 门禁处暂停。"
+
+  - scenario_id: "code_references_and_navigation_links"
+    description: "断言使用可点击链接与导航卫生。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-lite/SKILL.md"
+    turns:
+      - user_input: "/egm-lite 在 src/RequestHandler.java 的 handleRequest 中添加空值检查。"
+        assertions:
+          - type: "required_pattern"
+            pattern: "\\[[^\\]]+\\]\\([^\\)]+\\)"
+            message: "本地引用必须使用可点击的 Markdown 链接。"
+
+  - scenario_id: "fresh_context_delegation_guard"
+    description: >-
+      验证第 4 节要求新鲜上下文子智能体工具，在无子智能体工具可用时停止，而非运行同上下文评审。
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-lite/SKILL.md"
+    turns:
+      - user_input: >-
+          我们刚完成 RequestHandler 的 EGM-Lite 第 3 节（exec），工作区保留着生成的 diff。
+          这是我的指令：goldfish。注意当前宿主环境未暴露任何子智能体工具（无 invoke_subagent、
+          Agent 或 spawn_agent）。按第 4 节你会如何处理？
+        assertions:
+          - type: "required_pattern"
+            pattern: "(stop|not a Goldfish review|same-context|fresh)"
+            message: >-
+              当无子智能体工具可用时，智能体必须停止并说明同上下文评审不是金鱼评审。
+
+  - scenario_id: "pre_review_exclusion_and_materiality_floor"
+    description: >-
+      验证第 2 阶段会将评审前排除项持久化到 egm_lite_checklist.md，且第 4 阶段会指示金鱼子智能体
+      跳过评审前排除项与风格类吹毛求疵。
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-lite/SKILL.md"
+    turns:
+      - user_input: >-
+          在第 1 阶段我们同意将 RequestHandler 的旧版指标迁移排除在范围之外。
+          你在第 2 节（checklist）中如何记录它，以及第 4 节（review）如何防止金鱼子智能体
+          重复标记它或提出风格类吹毛求疵？
+        assertions:
+          - type: "required_pattern"
+            pattern: "egm_lite_checklist\\.md"
+            message: >-
+              智能体必须在 egm_lite_checklist.md 中记录评审前排除项。
+          - type: "required_pattern"
+            pattern: "(pre-review exclusion|exclude|skip)"
+            message: >-
+              第 4 节必须指示金鱼子智能体跳过清单中记录的评审前排除项。
+          - type: "required_pattern"
+            pattern: "(material|nitpick|stylistic)"
+            message: >-
+              第 4 节必须将发现限定在实质性问题并抑制风格类吹毛求疵。
+
+  - scenario_id: "readme_grounding_and_inline_checklist_comments"
+    description: >-
+      验证第 1 节会立足目标文件、直接调用方或测试以及所在目录已有的 README.md 或用户引用文档，
+      且第 3 节会应用留在 egm_lite_checklist.md 上的行内评论。
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-lite/SKILL.md"
+    turns:
+      - user_input: >-
+          1) 按第 1 节，你在立足代码时必须阅读哪些本地文件和文档？
+          2) 按第 3 节，如果用户在批准 egm_lite_checklist.md 时留下了行内评论，你会如何处理？
+        assertions:
+          - type: "required_pattern"
+            pattern: "(caller|test)"
+            message: >-
+              第 1 节立足代码必须包含目标文件的直接调用方或测试。
+          - type: "required_pattern"
+            pattern: "README\\.md"
+            message: >-
+              第 1 节立足代码必须包含所在目录已有的 README.md 或用户引用文档。
+          - type: "required_pattern"
+            pattern: "(inline|comment|adjustment)"
+            message: >-
+              第 3 节必须在实现前应用 egm_lite_checklist.md 上的行内评论。
+
+  - scenario_id: "exec_conditional_bluf_escalation_and_multifile"
+    description: >-
+      验证第 3 节在上报裁决暂停、自主自我修复或多文件改动时以 > **BLUF:** 开头，
+      而在干净的单目标运行时省略它。
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-lite/SKILL.md"
+    turns:
+      - user_input: >-
+          按第 3 节（EXEC PROTOCOL），你的输出何时必须以 > **BLUF:** 引用块开头，何时必须省略？
+        assertions:
+          - type: "required_pattern"
+            pattern: "(Escalation|multi-file|self-repair)"
+            message: >-
+              第 3 节必须在上报裁决暂停、多文件改动或自主自我修复时要求 > **BLUF:**。
+          - type: "required_pattern"
+            pattern: "(single-target|omit)"
+            message: >-
+              第 3 节在干净的单目标运行时必须省略 > **BLUF:**。
+
+  - scenario_id: "alternatives_considered_artifact"
+    description: >-
+      验证在批判暂停期间会将多个可行方案记录在 egm_lite_alternatives.md 中。
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-lite/SKILL.md"
+    turns:
+      - user_input: >-
+          /egm-lite 为了解决 RequestHandler 的查询延迟，我们可以加一个本地内存 LRU 缓存，
+          或者查询数据库只读副本。我们应该采用哪种方案，你如何记录这些备选方案？
+        assertions:
+          - type: "required_pattern"
+            pattern: "egm_lite_alternatives\\.md"
+            message: >-
+              智能体必须在 egm_lite_alternatives.md 中记录竞争方案。
+          - type: "required_pattern"
+            pattern: ">\\s*\\*\\*BLUF(?:\\*\\*)?:"
+            message: >-
+              批判暂停与备选方案产物必须使用 > **BLUF:** 引用块。
+          - type: "required_pattern"
+            pattern: "\\n---\\n"
+            message: >-
+              BLUF 引用块必须以 --- 水平分隔线结束。
+          - type: "required_pattern"
+            pattern: "(without.*inline|not.*inline|link.*artifact)"
+            message: >-
+              智能体必须在聊天中链接 egm_lite_alternatives.md，而不在正文内联讨论备选方案。
+          - type: "required_pattern"
+            pattern: "checklist"
+            message: >-
+              智能体仍必须在批判暂停末尾以 checklist 作为门禁。
+
+  - scenario_id: "gate_halt_after_checklist"
+    description: >-
+      验证智能体在写入 egm_lite_checklist.md 后结束回合，在用户输入 exec 或点击 Proceed 之前，
+      不会编辑仓库文件、运行测试或启动评审。
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-lite/SKILL.md"
+    turns:
+      - user_input: >-
+          /egm-lite 我们能在网络请求处理器里加一个 5 秒延迟的快速重试循环来处理超时吗？
+        assertions:
+          - type: "forbidden_pattern"
+            pattern: "(Model Rule:|STOP WORK IMMEDIATELY|FORBIDDEN FROM CALLING)"
+            message: >-
+              内部运行暂停指令不得回显到聊天中。
+      - user_input: "checklist"
+        assertions:
+          - type: "required_pattern"
+            pattern: "(exec|Proceed)"
+            message: "清单回合必须以提示 exec 或 Proceed 结束。"
+          - type: "forbidden_pattern"
+            pattern: "(Model Rule:|STOP WORK IMMEDIATELY|FORBIDDEN FROM CALLING)"
+            message: >-
+              内部运行暂停指令不得回显到聊天中。
+
+  - scenario_id: "gate_halt_after_exec"
+    description: >-
+      验证第一回合停在批判暂停且不写文件，收到 exec 后智能体写入文件、提示 review 或 goldfish，
+      且不会自行启动评审或派生评审子智能体。
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-lite/SKILL.md"
+    turns:
+      - user_input: >-
+          /egm-lite 遵循本地工作区中的 EGM-Lite 技能，我们可以创建文件
+          skills/egm-lite/eval_probe.md，仅包含一行内容：eval probe 吗？
+        assertions:
+          - type: "required_pattern"
+            pattern: "checklist"
+            message: "第一回合必须停在批判暂停并提供 checklist。"
+          - type: "forbidden_pattern"
+            pattern: "(Model Rule:|STOP WORK IMMEDIATELY|FORBIDDEN FROM CALLING)"
+            message: >-
+              内部运行暂停指令不得回显到聊天中。
+      - user_input: "checklist"
+        assertions:
+          - type: "required_pattern"
+            pattern: "egm_lite_checklist\\.md"
+            message: "清单回合必须写入 egm_lite_checklist.md 并在实现前停止。"
+      - user_input: "exec"
+        assertions:
+          - type: "required_pattern"
+            pattern: "(review|goldfish)"
+            message: "执行回合必须以提示 review 或 goldfish 结束。"
+          - type: "forbidden_pattern"
+            pattern: "(PROPOSE FIX|CONTEST)"
+            message: "执行回合不得自行运行或分诊评审。"
+          - type: "forbidden_pattern"
+            pattern: "(Model Rule:|STOP WORK IMMEDIATELY|FORBIDDEN FROM CALLING)"
+            message: >-
+              内部运行暂停指令不得回显到聊天中。
+
+  - scenario_id: "spec_review_adaptive_choice_and_recommendation"
+    description: >-
+      验证第 2A 节同时提供 exec 与 goldfish/review，并在满足非平凡条件时触发动态推荐 BLUF。
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-lite/SKILL.md"
+    turns:
+      - user_input: >-
+          在本地工作区中，按 EGM-Lite 第 2A 节执行，这是我的指令：checklist。
+          该任务涉及两个生产代码文件并修改了异步 RPC 逻辑。你如何格式化完成门禁并提供什么建议？
+        assertions:
+          - type: "required_pattern"
+            pattern: ">\\s*\\*\\*BLUF(?:\\*\\*)?:"
+            message: "第 2A 节动态建议必须以 > **BLUF:** 引用块开头。"
+          - type: "required_pattern"
+            pattern: "(recommend|goldfish|review)"
+            message: "第 2A 节动态建议必须针对非平凡逻辑推荐 goldfish 或 review。"
+          - type: "required_pattern"
+            pattern: "\\n---\\n"
+            message: "动态建议 BLUF 必须以 --- 水平分隔线结束。"
+          - type: "required_pattern"
+            pattern: "(exec|Proceed)"
+            message: "第 2A 节完成门禁必须提供 exec 或 Proceed。"
+          - type: "required_pattern"
+            pattern: "(goldfish|review)"
+            message: "第 2A 节完成门禁必须提供 goldfish 或 review。"
+
+  - scenario_id: "spec_review_offered_on_routine_change"
+    description: >-
+      验证在未满足任何复杂度条件时，第 2A 节仍会在 exec/Proceed 旁同时提供 goldfish/review。
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-lite/SKILL.md"
+    turns:
+      - user_input: >-
+          在本地工作区中，按 EGM-Lite 第 2A 节执行，这是我的指令：checklist。
+          该任务是对单个生产代码文件的常规改动。你如何格式化完成门禁并提供什么建议？
+        assertions:
+          - type: "required_pattern"
+            pattern: ">\\s*\\*\\*BLUF(?:\\*\\*)?:"
+            message: "第 2A 节建议必须以 > **BLUF:** 引用块开头。"
+          - type: "required_pattern"
+            pattern: "(goldfish|review)"
+            message: "即使对于常规改动，第 2A 节完成门禁也必须提供 goldfish 或 review。"
+          - type: "required_pattern"
+            pattern: "\\n---\\n"
+            message: "建议 BLUF 必须以 --- 水平分隔线结束。"
+          - type: "required_pattern"
+            pattern: "(exec|Proceed)"
+            message: "第 2A 节完成门禁必须提供 exec 或 Proceed。"
+          - type: "forbidden_pattern"
+            pattern: "\\bPath [AB]\\b"
+            message: "门禁文本必须直接写出指令名，而不是 Path A 或 Path B。"
+
+  - scenario_id: "spec_review_subagent_invocation"
+    description: >-
+      验证在第 2A 节输入 goldfish 或 review 会将清单 Markdown 与规格评审准则注入干净的子智能体提示词，
+      并禁止 AST/diff 检查。
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-lite/SKILL.md"
+    turns:
+      - user_input: >-
+          /egm-lite goldfish。我们刚在第 2A 节生成了 egm_lite_checklist.md。
+          请描述你在第 2B 节下的子智能体派发步骤。
+        assertions:
+          - type: "required_pattern"
+            pattern: "Goldfish Specification Reviewer"
+            message: "第 2B 节必须以 Goldfish Specification Reviewer 角色派发子智能体。"
+          - type: "required_pattern"
+            pattern: "(egm_lite_checklist\\.md|checklist contents|markdown)"
+            message: "第 2B 节必须将清单 Markdown 注入子智能体提示词。"
+          - type: "required_pattern"
+            pattern: "(Scope Containment|Invariant|Failure Modes|Test Plan)"
+            message: "第 2B 节提示词必须包含规格评审准则各维度。"
+          - type: "required_pattern"
+            pattern: "(?i)(forbid|prohibit|never|not|no|without)[^.\\n]{0,60}(git diff|AST)"
+            message: "第 2B 节必须严格禁止 git diff 或 AST 代码检查。"
+
+  - scenario_id: "state_transition_graceful_advisory"
+    description: >-
+      验证尝试无效状态转换（如在编辑文件前请求差异评审）时会输出优雅的状态建议引用块。
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-lite/SKILL.md"
+    turns:
+      - user_input: >-
+          在本地工作区中使用 EGM-Lite，这是我的指令：review。我们刚完成 RequestHandler 的
+          第 1 节批判暂停，尚未生成清单或编辑代码。你会如何回复？
+        assertions:
+          - type: "required_pattern"
+            pattern: ">\\s*\\*\\*BLUF(?:\\*\\*)?:.*State Advisory"
+            message: "无效状态转换必须输出 > **BLUF:** [State Advisory] 引用块。"
+          - type: "required_pattern"
+            pattern: "\\n---\\n"
+            message: "状态建议 BLUF 必须以 --- 水平分隔线结束。"
+          - type: "required_pattern"
+            pattern: "(checklist|valid|Cannot execute)"
+            message: "状态建议必须说明无效操作并引导用户使用有效的下一指令。"
+
+  - scenario_id: "spec_review_resolution_lgtm_transition"
+    description: >-
+      验证第 5 节的规格评审 [✅ LGTM] 会提示 exec/Proceed，而不会将任务标记完成或输出完成总结。
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-lite/SKILL.md"
+    turns:
+      - user_input: >-
+          在本地工作区中，Goldfish Specification Reviewer 子智能体完成了对 egm_lite_checklist.md
+          的规格评审，返回了显式 [✅ LGTM] 且零发现。请按 EGM-Lite 处理该子智能体响应。
+        assertions:
+          - type: "required_pattern"
+            pattern: ">\\s*\\*\\*BLUF(?:\\*\\*)?:"
+            message: "规格 LGTM 响应必须以 > **BLUF:** 引用块开头。"
+          - type: "required_pattern"
+            pattern: "\\[✅\\s*LGTM\\]"
+            message: "规格 LGTM 响应必须以 [✅ LGTM] 徽章开头。"
+          - type: "required_pattern"
+            pattern: "(exec|Proceed)"
+            message: "规格 LGTM 响应必须提示用户点击 Proceed 或输入 exec 开始实现。"
+          - type: "forbidden_pattern"
+            pattern: "(modified files|passing test targets|what would you like to do next|completed the task)"
+            message: "规格 LGTM 响应不得关闭任务或输出代码完成总结。"
+
+  - scenario_id: "spec_review_resolution_findings_triage"
+    description: >-
+      验证第 5 节的规格评审发现会以 [X] [PY] 呈现分诊，且分诊回合不执行任何工具变更。
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-lite/SKILL.md"
+    turns:
+      - user_input: >-
+          /egm-lite Goldfish Specification Reviewer 对 egm_lite_checklist.md 返回了发现：
+          缺少超时处理以及未验证的 Spanner 契约。你在第 5 节中如何分诊？
+        assertions:
+          - type: "required_pattern"
+            pattern: ">\\s*\\*\\*BLUF(?:\\*\\*)?:"
+            message: "规格分诊响应必须以 > **BLUF:** 引用块开头。"
+          - type: "required_pattern"
+            pattern: "\\[🛠️\\s*\\d+\\s*FIX\\s*\\|\\s*🛡️\\s*\\d+\\s*CONTEST\\]"
+            message: "规格分诊 BLUF 必须以 [🛠️ X FIX | 🛡️ Y CONTEST] 徽章开头。"
+          - type: "required_pattern"
+            pattern: "\\[\\d+\\]\\s*\\[P[0-3]\\]"
+            message: "规格分诊必须以 [X] [PY] 格式标记条目。"
+          - type: "required_pattern"
+            pattern: "(checklist|exec|goldfish|review)"
+            message: "规格分诊必须提供 checklist、exec 或 goldfish/review 重审选项。"
+          - type: "forbidden_pattern"
+            pattern: "(edit_file|write_file|replace_file_content|write_to_file)"
+            message: "规格分诊回合必须保持纯展示型，不得调用变更工具。"
+
+  - scenario_id: "spec_review_resolution_checklist_update"
+    description: >-
+      验证在规格分诊后输入 checklist 或 goldfish 会将商定条目更新到 egm_lite_checklist.md。
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-lite/SKILL.md"
+    turns:
+      - user_input: >-
+          /egm-lite checklist。在第 5 节规格分诊后，我们同意添加超时处理并安排 Spanner 实证测试。
+          你会采取什么行动？
+        assertions:
+          - type: "required_pattern"
+            pattern: "egm_lite_checklist\\.md"
+            message: "智能体必须将商定修订更新到 egm_lite_checklist.md。"
+          - type: "required_pattern"
+            pattern: "(timeout|Spanner)"
+            message: "更新后的清单必须纳入商定条目。"
+
+  - scenario_id: "review_baseline_recorded_before_first_edit"
+    description: >-
+      验证第 3 节在首次编辑前将评审基线（起始提交与既有工作区变更）记录在清单中，
+      并将不相关的既有编辑排除在评审输入之外。
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-lite/SKILL.md"
+    turns:
+      - user_input: >-
+          /egm-lite 已批准的清单目标是 src/client.py。工作区中已经存在我对 docs/notes.md
+          的不相关未提交编辑。这是我的指令：exec。你在首次编辑前会记录什么，
+          评审时 docs/notes.md 会怎么处理？
+        assertions:
+          - type: "required_pattern"
+            pattern: "(?i)(baseline|starting commit)"
+            message: >-
+              智能体必须在首次实现编辑前记录评审基线。
+          - type: "required_pattern"
+            pattern: "(?i)(docs/notes\\.md|pre-existing|unrelated)"
+            message: >-
+              智能体必须将不相关的既有编辑排除在本任务的评审输入之外。
+          - type: "forbidden_pattern"
+            pattern: "(?i)git (add|commit|stash)[^\\n]{0,40}docs/notes\\.md"
+            message: >-
+              智能体不得为了收集 diff 而暂存、提交或储藏用户的文件。
+
+  - scenario_id: "review_input_includes_untracked_files"
+    description: >-
+      验证第 4 节会将新增的未跟踪文件收集进评审输入，而不是仅依赖已跟踪文件的 diff。
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-lite/SKILL.md"
+    turns:
+      - user_input: >-
+          /egm-lite 我们刚完成第 3 节（exec）。该任务编辑了 src/client.py，并新增了尚未被 Git 跟踪的文件
+          src/retry_policy.py。这是我的指令：goldfish。按第 4 节你如何收集评审输入？
+        assertions:
+          - type: "required_pattern"
+            pattern: "(?i)(untracked|ls-files)"
+            message: >-
+              智能体在收集评审输入时必须发现未跟踪文件。
+          - type: "required_pattern"
+            pattern: "retry_policy"
+            message: >-
+              评审输入必须包含新增未跟踪文件的内容。
+
+  - scenario_id: "review_input_includes_committed_task_changes"
+    description: >-
+      验证第 4 节通过与记录的基线对比，收集在评审前已提交的任务改动。
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-lite/SKILL.md"
+    turns:
+      - user_input: >-
+          /egm-lite 我们刚完成第 3 节（exec）。清单中记录了起始提交，且对 src/client.py 的任务改动
+          在 exec 期间已提交，因此工作区是干净的。这是我的指令：goldfish。按第 4 节你如何收集评审输入？
+        assertions:
+          - type: "required_pattern"
+            pattern: "(?i)(baseline|starting commit)"
+            message: >-
+              智能体必须对照记录的基线收集任务改动，使已提交的改动保持可见。
+          - type: "forbidden_pattern"
+            pattern: "(?i)(nothing to review|no changes to review|empty diff)"
+            message: >-
+              智能体不得将干净的工作区视为无可评审内容。
+
+  - scenario_id: "review_input_incomplete_coverage_stops"
+    description: >-
+      验证当清单目标无法检查时，第 4 节会停止并报告覆盖不完整，而不是请求 LGTM。
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-lite/SKILL.md"
+    turns:
+      - user_input: >-
+          /egm-lite 我们刚完成第 3 节（exec）。清单目标是 src/client.py 和 build/schema.bin。
+          build/schema.bin 被 Git 忽略且我在这个工作区里无法读取它。这是我的指令：goldfish。
+          按第 4 节你会如何处理？
+        assertions:
+          - type: "required_pattern"
+            pattern: "(?i)(incomplete|cannot be inspected|can't be inspected|coverage)"
+            message: >-
+              当清单目标无法检查时，智能体必须停止并报告覆盖不完整。
+          - type: "forbidden_pattern"
+            pattern: "\\[✅\\s*LGTM\\]"
+            message: >-
+              对于覆盖不完整的评审，智能体不得报告 LGTM。
+
+  - scenario_id: "exec_before_checklist_redirects_to_checklist"
+    description: >-
+      验证在批判暂停后直接执行 exec 不会开始实现，而是引导用户先执行 checklist。
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-lite/SKILL.md"
+    turns:
+      - user_input: >-
+          /egm-lite 在新文件 parity.py 中添加函数 is_odd(n)，并在 parity_test.py 中编写单元测试。
+        assertions:
+          - type: "required_pattern"
+            pattern: "checklist"
+            message: "第一回合必须停在批判暂停并提供 checklist。"
+      - user_input: "exec"
+        assertions:
+          - type: "required_pattern"
+            pattern: "checklist"
+            message: "清单存在前输入 exec 必须引导用户先执行 checklist。"
+          - type: "required_pattern"
+            pattern: ">\\s*\\*\\*BLUF(?:\\*\\*)?:.*State Advisory"
+            message: "清单存在前输入 exec 必须返回 > **BLUF:** [State Advisory] 引用块。"
+          - type: "forbidden_pattern"
+            pattern: "- \\[x\\]"
+            message: "在清单存在前不得实现或标记完成任何内容。"

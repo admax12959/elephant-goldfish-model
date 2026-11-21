@@ -1,0 +1,84 @@
+# 原文路径: skills/egm-review-loop/test_scenarios.yaml
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+skill: "egm-review-loop"
+description: "egm-review-loop 技能的行为评估场景套件。"
+
+scenarios:
+  - scenario_id: "orchestrate_parallel_critiques"
+    description: "验证评审人格编排与发现汇总。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-review-loop/SKILL.md"
+    turns:
+      - user_input: "在 docs/design.md 上编排多视角金鱼评审。"
+        assertions:
+          - type: "required_pattern"
+            pattern: "(Review|Goldfish|findings|persona|comprehension|critic)"
+            message: "评审循环编排器必须确认评审人格与结构化发现汇总。"
+
+  - scenario_id: "convergence_not_zero_findings"
+    description: "验证循环基于连续净轮次停止而非零发现，且不重新打开已裁决（settled）的发现。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-review-loop/SKILL.md"
+    turns:
+      - user_input: "对 docs/design.md 的第 3 轮评审循环返回了两条 Nit 和一条在第 1 轮已提出异议（contested）的 Major。第 2 轮是净轮次（clean）。接下来会发生什么？"
+        assertions:
+          - type: "required_pattern"
+            pattern: "(?i)(converged|two consecutive clean|settled)"
+            message: "循环必须将重提的已裁决发现与 Nit 视为非阻塞，并报告已收敛（converged）。"
+
+  - scenario_id: "missing_reviewer_status_not_clean"
+    description: "验证在合成器汇总中缺少状态的评审员计为 not run，因此零发现轮次也不算净轮次。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-review-loop/SKILL.md"
+    turns:
+      - user_input: "对 docs/design.md 的第 2 轮合成器汇总显示：0 findings；egm-design completed，egm-structural completed。同时还请求了 egm-style。第 2 轮是净轮次吗？"
+        assertions:
+          - type: "required_pattern"
+            pattern: "(?i)not run"
+            message: "缺少状态的被请求评审员必须计为 not run，因此该轮不是净轮次。"
+
+  - scenario_id: "goldfish_context_urls_saved_as_files"
+    description: "验证 GoldfishContext 中的 URL 会在第一轮前保存为文件，因为部分评审员无法打开 URL。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-review-loop/SKILL.md"
+    turns:
+      - user_input: "在 docs/design.md（full file）上运行评审循环，评审员为 design_critic 和 structural，均使用 feature-spec-standard，GoldfishContext 为 [src/cache.py, https://redis.io/docs/latest/develop/use/keyspace/]。我确认此配置；开始第 1 轮。"
+        assertions:
+          - type: "required_pattern"
+            pattern: "(?i)(\\b(sav(e|es|ed|ing)|download\\w*|fetch\\w*|stor(e|es|ed|ing)|writ(e|es|ing|ten)|wrote)\\b[^\\n]{0,80}\\b(pages?|urls?|links?)\\b|\\b(pages?|urls?|links?)\\b[^\\n]{0,80}\\b(sav(e|es|ed|ing)|download\\w*|fetch\\w*|stor(e|es|ed|ing)|writ(e|es|ing|ten)|wrote)\\b|(redis|keyspace)[\\w-]*\\.(md|html?|txt)\\b)"
+            message: "回复必须说明该 URL 的页面会被保存为文件。"
+          - type: "forbidden_pattern"
+            pattern: "(?i)\\b(won't|will not|don't|do not|no need to|not going to|skip\\w*)\\s+(\\w+\\s+){0,2}(sav|download|fetch)\\w*"
+            message: "回复不得跳过保存页面。"
+          - type: "forbidden_pattern"
+            pattern: "(?i)(?<!not )(?<!n't )(?<!never )(?<!of )\\b(pass\\w*|send\\w*|giv\\w*|hand\\w*)\\b[^\\n]{0,60}\\b(urls?|links?)\\b[^\\n]{0,40}\\b(directly|as-is|as is|straight|unchanged)\\b"
+            message: "回复不得将原始 URL 直接传给评审员。"
+
+  - scenario_id: "goldfish_context_unsaved_url_asks_for_local_copy"
+    description: "验证当 GoldfishContext 页面无法保存时，循环会向用户索取本地副本。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-review-loop/SKILL.md"
+    turns:
+      - user_input: "在 docs/design.md（full file）上运行评审循环，评审员为 design_critic 和 structural，均使用 feature-spec-standard，GoldfishContext 为 [src/cache.py, https://redis.io/docs/latest/develop/use/keyspace/]。当前会话网络已断开，无法抓取该页面。我确认此配置；开始第 1 轮。"
+        assertions:
+          - type: "required_pattern"
+            pattern: "(?i)\\b(local\\s+(copy|file|version)|copy|path)\\b[^\\n]{0,60}\\?"
+            message: "对于无法保存的页面，循环必须向用户索取本地副本。"
