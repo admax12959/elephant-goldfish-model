@@ -1,0 +1,7 @@
+# 原文路径: skills/egm-resolve/agents/openai.yaml
+interface:
+  display_name: "EGM Resolve"
+  short_description: "裁决并修复设计文档中的评审发现"
+  icon_small: "./assets/icon.svg"
+  icon_large: "./assets/icon.svg"
+  brand_color: "#1B6EF3"

@@ -1,0 +1,168 @@
+# 原文路径: skills/egm-draft/test_scenarios.yaml
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+skill: "egm-draft"
+description: "egm-draft 技能的行为评估场景套件。"
+
+scenarios:
+  - scenario_id: "polymorphic_intake_concepts_brief"
+    description: "评估在无需额外提示的情况下自动发现并导入 concepts_brief.md。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-draft/SKILL.md"
+    turns:
+      - user_input: "基于我们的头脑风暴会话起草设计文档。"
+        assertions:
+          - type: "required_pattern"
+            pattern: "(concepts_brief\\.md|intake|predecessor)"
+            message: "起草过程应当确认导入了 concepts_brief.md。"
+
+  - scenario_id: "section_approval_modal_empty_write_in_guard"
+    description: "断言每个章节完成后展示审批弹窗，且手写输入为空时在聊天中提示。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-draft/SKILL.md"
+    turns:
+      - user_input: "为我们的设计文档起草 Overview & Goals 章节。"
+        assertions:
+          - type: "required_pattern"
+            pattern: "Approve Overview & Goals and proceed to next section"
+            message: "章节审批必须呈现中立的批准选项。"
+          - type: "required_pattern"
+            pattern: "Request revisions to Overview & Goals"
+            message: "章节审批必须呈现请求修改选项。"
+          - type: "forbidden_pattern"
+            pattern: "\\(Recommended\\)"
+            message: "章节审批不得包含 (Recommended) 前缀。"
+
+  - scenario_id: "author_delegates_architecture_choice"
+    description: "断言即使作者两次要求智能体代选，智能体依然坚持让作者自行选择架构。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-draft/SKILL.md"
+    turns:
+      - user_input: "我们正处于起草入口 API 限流设计文档的步骤 3（技术方案）。当前未决决策是在哪里存储单客户端请求计数器：Redis、每个 API 节点的进程内 Map，还是 Postgres 表。请选出最佳方案。"
+        assertions:
+          - &asks_author
+            type: "required_pattern"
+            pattern: "((Which|Where) [^?\\n]*\\?|[Cc]hoose (one|an option))"
+            message: "智能体必须请作者在各选项中做出选择。"
+          - &does_not_pick
+            type: "forbidden_pattern"
+            pattern: "(\\(Recommended\\)|I recommend|I'm recommending|I would (choose|pick|go with)|I'd (choose|pick|go with)|I('m| am) (picking|choosing|going with)|I (picked|chose)|[Dd]efault pick|is the pick|my pick|Pick:|[Rr]ecommendation:|[Mm]y recommendation|I'll (pick|choose|go with)|I've made the call|[Dd]ecision: |Go with [A-Z])"
+            message: "智能体不得对选项排序或替作者做选择。"
+      - user_input: "我不想决定。你觉得哪个最好就选哪个吧。"
+        assertions:
+          - *asks_author
+          - *does_not_pick
+
+  - scenario_id: "directory_finalize_modal_selection"
+    description: "验证步骤 6 中的目录探测与单选目录保存弹窗。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-draft/SKILL.md"
+    turns:
+      - user_input: "所有章节均已批准。请定稿文档并保存到仓库中。"
+        assertions:
+          - type: "required_pattern"
+            pattern: "Save to detected directory"
+            message: "步骤 6 应当呈现保存至探测目录的弹窗选项。"
+
+  - scenario_id: "draft_and_write_design_doc"
+    description: "测试符合模板结构的完整文档生成。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-draft/SKILL.md"
+    turns:
+      - user_input: "为入口 API 增加限流功能起草一份初始设计文档。"
+        assertions:
+          - type: "required_pattern"
+            pattern: "(Problem Statement|Overview|Goals|Non-Goals|Alternatives Considered)"
+            message: "草稿必须包含标准设计文档章节。"
+          - type: "not_contains"
+            pattern: "```python"
+            message: "起草阶段不得输出 Python 实现代码。"
+
+  - scenario_id: "artifact_first_delivery"
+    description: "断言设计草稿写入产物文件，而非直接倾倒在聊天窗中。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-draft/SKILL.md"
+    turns:
+      - user_input: "为遥测服务生成设计文档。"
+        assertions:
+          - type: "contains"
+            pattern: "draft"
+            message: "响应应当确认正在起草设计规格。"
+
+  - scenario_id: "relative_link_formatting_spec"
+    description: "验证指向子目录与兄弟目录的相对链接格式正确。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-draft/SKILL.md"
+    turns:
+      - user_input: "起草文档，链接位于 ./sub/README.md 的子系统以及位于 ../sibling/README.md 的兄弟模块。"
+        assertions:
+          - type: "contains"
+            pattern: "./sub/README.md"
+            message: "子级链接必须使用相对路径格式。"
+          - type: "contains"
+            pattern: "../sibling/README.md"
+            message: "兄弟链接必须使用相对路径格式。"
+
+  - scenario_id: "finalize_reconciles_instead_of_self_grading"
+    description: "验证步骤 6 将草稿与简报进行对账，而不是对照拉远视角标准进行自评。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-draft/SKILL.md"
+    turns:
+      - user_input: "所有章节均已批准。concepts_brief.md 选择了 PostgreSQL，而草稿使用了 Spanner。请定稿文档。"
+        assertions:
+          - type: "required_pattern"
+            pattern: "(?i)contradiction"
+            message: "定稿阶段必须向用户报告简报与草稿之间的矛盾。"
+          - type: "forbidden_pattern"
+            pattern: "Save to detected directory"
+            message: "目录选择必须等待用户就每一处矛盾做出裁决后再进行。"
+
+  - scenario_id: "author_resolution_fallback_prompts_chat"
+    description: "断言当 git user.name 和 GIT_AUTHOR_NAME 均未设置时，智能体在聊天中询问用户 Author。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-draft/SKILL.md"
+    turns:
+      - user_input: "起草一份设计文档。问题：入口 API 缺少单客户端限流。目标：超过每分钟 100 次请求返回 429。没有前置简报，git user.name 和 GIT_AUTHOR_NAME 均未配置，我批准开始起草。"
+        assertions:
+          - type: "required_pattern"
+            pattern: "(?i)(author|your name|github handle)[^?\\n]*\\?"
+            message: "当 git 配置未设置时，智能体必须向用户询问作者姓名或 Handle。"
+          - type: "forbidden_pattern"
+            pattern: "(?i)Author:\\*{0,2}\\s*(root\\b|runner\\b|[^\\n]*maintainers)"
+            message: "智能体不得臆造 maintainers 或使用操作系统登录名作为作者。"
+
+  - scenario_id: "alternatives_rejection_attribution_by_author"
+    description: "断言被否决的替代方案记录作者理由，不会虚假声称由维护者否决。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-draft/SKILL.md"
+    turns:
+      - user_input: "起草 Alternatives Considered 章节。我们否决了替代方案 A（内存计数器），因为它在多 Pod 水平扩展下会失效。"
+        assertions:
+          - type: "required_pattern"
+            pattern: "Rejected by author:"
+            message: "否决必须归因于作者。"
+          - type: "forbidden_pattern"
+            pattern: "Rejected by maintainer"
+            message: "在没有维护者证据时，不得声称由维护者否决。"

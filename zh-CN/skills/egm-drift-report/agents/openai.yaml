@@ -1,0 +1,7 @@
+# 原文路径: skills/egm-drift-report/agents/openai.yaml
+interface:
+  display_name: "EGM 漂移报告（Drift report）"
+  short_description: "查找设计文档与代码实现之间的差异"
+  icon_small: "./assets/icon.svg"
+  icon_large: "./assets/icon.svg"
+  brand_color: "#E86E00"

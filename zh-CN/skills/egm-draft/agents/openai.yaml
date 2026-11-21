@@ -1,0 +1,7 @@
+# 原文路径: skills/egm-draft/agents/openai.yaml
+interface:
+  display_name: "EGM 起草（Draft）"
+  short_description: "逐节撰写技术设计文档"
+  icon_small: "./assets/icon.svg"
+  icon_large: "./assets/icon.svg"
+  brand_color: "#1B6EF3"

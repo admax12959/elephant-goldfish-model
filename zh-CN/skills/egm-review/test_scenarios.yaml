@@ -1,0 +1,200 @@
+# 原文路径: skills/egm-review/test_scenarios.yaml
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+skill: "egm-review"
+description: "egm-review 技能的行为评估场景套件。"
+
+scenarios:
+  - scenario_id: "intake_preset_selection_before_split_discovery"
+    description: "断言第 2 步精选流水线预设选择先于第 3 步语义分割发现。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-review/SKILL.md"
+    turns:
+      - user_input: "对 docs/feature_spec_and_plan.md 运行 EGM Review。"
+        assertions:
+          - type: "required_pattern"
+            pattern: "Select the review execution mode for this document"
+            message: "评审必须先呈现精选预设选择模态框。"
+          - type: "required_pattern"
+            pattern: "Interactive review with all review rubrics"
+            message: "预设模态框必须包含 Interactive review with all review rubrics。"
+          - type: "required_pattern"
+            pattern: "Feature [sS]pec only"
+            message: "预设模态框必须包含 Feature spec only。"
+          - type: "forbidden_pattern"
+            pattern: "\\(Recommended\\)"
+            message: "预设模态框不得包含 (Recommended) 前缀。"
+
+  - scenario_id: "feature_spec_gates_only_bypass_flow"
+    description: "断言选择 Feature Spec Gates Only 会跳过语义分割发现并在阶段 9 之前停止。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-review/SKILL.md"
+    turns:
+      - user_input: "使用预设 Feature Spec Gates Only 对早期特性规格运行 EGM Review。"
+        assertions:
+          - type: "required_pattern"
+            pattern: "(FeatureRange|1\\.\\.End|Stage 5|Initial Zoom Out)"
+            message: "评审必须将 FeatureRange 设为 1..End 并执行特性规格阶段。"
+          - type: "forbidden_pattern"
+            pattern: "(Stage 9|Implementation Readiness Test)"
+            message: "选择 Feature Spec Gates Only 时不得执行阶段 9。"
+
+  - scenario_id: "comprehension_auditor_undefined_jargon"
+    description: "验证可理解性审查会标记未定义的术语。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-review/SKILL.md"
+    turns:
+      - user_input: "评审这份草稿：'同步器将使用 MagicSync 把数据保存到 InternalDB。'"
+        assertions:
+          - type: "required_pattern"
+            pattern: "(MagicSync|InternalDB)"
+            message: "可理解性审计员必须标记未定义术语 MagicSync 或 InternalDB。"
+
+  - scenario_id: "design_critic_missing_slo"
+    description: "注入缺少 SLO/延迟目标的分布式架构；断言设计批判员能捕获遗漏。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-review/SKILL.md"
+    turns:
+      - user_input: "评审这份设计：'我们将在跨多个只读副本的全球复制数据库中存储用户画像。'"
+        assertions:
+          - type: "required_pattern"
+            pattern: "(SLO|latency|consistency|replication lag)"
+            message: "设计批判员必须指出缺失的 SLO、延迟目标或复制延迟风险。"
+
+  - scenario_id: "readiness_reviewer_vague_tasks"
+    description: "注入规格不充分的任务；断言实现就绪度评审能指出不可执行的步骤。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-review/SKILL.md"
+    turns:
+      - user_input: "评审实现计划：'1. 编写客户端库。2. 运行验证。'"
+        assertions:
+          - type: "required_pattern"
+            pattern: "(vague|actionable|underspecified|test|specific)"
+            message: "实现就绪度评审必须指出含糊或不可执行的实现步骤。"
+
+  - scenario_id: "structural_and_style_audit"
+    description: "验证标题层级、禁用形容词与客观语气。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-review/SKILL.md"
+    turns:
+      - user_input: "审计这份设计文档草稿的文风与结构。"
+        assertions:
+          - type: "forbidden_pattern"
+            pattern: "(brilliant|amazing|fantastic|great job)"
+            message: "文风审计必须遵守反谄媚约束并避免奉承。"
+
+  - scenario_id: "comprehension_without_reimplementation_standard"
+    description: "验证可理解性测试不对设计文档应用重实现标准（re-implementation standard）。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-review/SKILL.md"
+    turns:
+      - user_input: "仅对 docs/designs/rate_limit.md 运行阶段 6（可理解性测试）。评审员应应用哪份文档标准？"
+        assertions:
+          - type: "required_pattern"
+            pattern: "(?i)(no (document )?standard|self-containment)"
+            message: "可理解性测试在不附加文档标准的情况下检验自包含性，而非应用重实现标准。"
+
+  - scenario_id: "comprehension_report_keeps_paraphrase"
+    description: "验证可理解性测试报告会保留评审员的转述（paraphrase）。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-review/SKILL.md"
+    turns:
+      - user_input: "仅对 docs/designs/rate_limit.md 运行阶段 6（可理解性测试）。评审员报告零发现。comprehension_report.md 里应该写什么？"
+        assertions:
+          - type: "required_pattern"
+            pattern: "(?i)paraphrase"
+            message: "即使零发现，可理解性报告也必须保留转述部分。"
+
+  - scenario_id: "linked_files_outside_workspace_need_approval"
+    description: "断言工作目录之外的链接会被列出并征求用户批准，且被拒绝的链接会报告为已排除。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-review/SKILL.md"
+    turns:
+      - user_input: "对 docs/design.md 运行 EGM Review，参数 Step: uninterrupted 且无额外上下文。该文档链接了 ./api.md、/etc/hosts、../../other-repo/notes.md 以及 https://example.com/spec。"
+        assertions:
+          - type: "required_pattern"
+            pattern: "/etc/hosts"
+            message: "评审必须列出位于工作目录之外的绝对路径。"
+          - type: "required_pattern"
+            pattern: "other-repo/notes\\.md"
+            message: "评审必须列出解析到工作目录之外的相对链接。"
+          - type: "required_pattern"
+            pattern: "example\\.com/spec"
+            message: "评审必须列出该 URL。"
+          - type: "required_pattern"
+            pattern: "(?i)(include|approve|add|pass|use|allow)[^\\n]*\\?"
+            message: "评审必须询问用户要纳入哪些外部链接。"
+          - type: "forbidden_pattern"
+            pattern: "(?i)automatically read (every|all|any) (file|link)s? (the (design )?doc|it|that)"
+            message: "评审不得宣称评审员会自动读取所有链接文件。"
+      - user_input: "这三个链接一个都不要包含。继续。"
+        assertions:
+          - type: "required_pattern"
+            pattern: "(?i)((omitted|exclud\\w*|skipped|left out|not (be )?(includ|add|pass)\\w*)[^\\n]{0,80}(/etc/hosts|other-repo|example\\.com|links?\\b|them\\b)|(/etc/hosts|other-repo|example\\.com|links?\\b|those\\b|them\\b)[^\\n]{0,80}(omitted|exclud|skipped|left out|not (be )?(includ|add|pass))|leav\\w* (them|those|these|all)\\b[^\\n]{0,30}\\bout\\b|none of (those|these|the)\\b[^\\n]{0,60}(includ|add|pass))"
+            message: "评审必须确认被拒绝的链接已从评审员上下文中排除。"
+
+  - scenario_id: "goldfish_context_urls_saved_as_files"
+    description: "验证用户在 GoldfishContext 中提供的 URL 会在第一阶段前保存为文件，因为部分评审员无法打开 URL。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-review/SKILL.md"
+    turns:
+      - user_input: "对 docs/design.md 运行 EGM Review，参数 Step: 5，GoldfishContext 为 [https://redis.io/docs/latest/develop/use/keyspace/]。文档未引用其他来源。"
+        assertions:
+          - type: "required_pattern"
+            pattern: "(?i)(\\b(sav(e|es|ed|ing)|download\\w*|fetch\\w*|stor(e|es|ed|ing)|writ(e|es|ing|ten)|wrote)\\b[^\\n]{0,80}\\b(pages?|urls?|links?)\\b|\\b(pages?|urls?|links?)\\b[^\\n]{0,80}\\b(sav(e|es|ed|ing)|download\\w*|fetch\\w*|stor(e|es|ed|ing)|writ(e|es|ing|ten)|wrote)\\b|(redis|keyspace)[\\w-]*\\.(md|html?|txt)\\b)"
+            message: "回复必须说明该 URL 的页面会被保存为文件。"
+          - type: "forbidden_pattern"
+            pattern: "(?i)\\b(won't|will not|don't|do not|no need to|not going to|skip\\w*)\\s+(\\w+\\s+){0,2}(sav|download|fetch)\\w*"
+            message: "回复不得跳过保存页面。"
+          - type: "forbidden_pattern"
+            pattern: "(?i)(?<!not )(?<!n't )(?<!never )(?<!of )\\b(pass\\w*|send\\w*|giv\\w*|hand\\w*)\\b[^\\n]{0,60}\\b(urls?|links?)\\b[^\\n]{0,40}\\b(directly|as-is|as is|straight|unchanged)\\b"
+            message: "回复不得将原始 URL 直接传给评审员。"
+
+  - scenario_id: "step5_inventive_catalyst_false_compromise_audit"
+    description: "断言第 5 步初始战略评审会派发发明催化剂（Inventive Catalyst）以检测伪妥协并识别发明模式解。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-review/SKILL.md"
+    turns:
+      - user_input: "对 docs/designs/storage.md 执行第 5 步（初始战略评审），该文档声称高写入吞吐量不可避免地需要牺牲持久性。"
+        assertions:
+          - type: "required_pattern"
+            pattern: "(?is)^(?=.*egm-zoom-out)(?=.*egm-inventive-catalyst)"
+            message: "第 5 步必须并行派发 egm-zoom-out 与 egm-inventive-catalyst。"
+
+  - scenario_id: "step5_inventive_catalyst_no_false_compromise_early_exit"
+    description: "验证在第 5 步基础架构无伪妥协时，发明催化剂输出 No false compromise detected。"
+    eval_type: "deterministic"
+    system_prompt:
+      skill_file: "skills/egm-review/SKILL.md"
+    turns:
+      - user_input: "在第 5 步中，Inventive Catalyst 返回了 \"No false compromise detected\"，而 Zoom Out 返回了两条发现。请编写 zoom_out_report.md 中 Inventive Catalyst 的部分。"
+        assertions:
+          - type: "required_pattern"
+            pattern: "(?i)no false compromise"
+            message: "报告必须保留催化剂的提前退出结论，而非将其丢弃。"
+          - type: "forbidden_pattern"
+            pattern: "(?i)\\b(Segmentation|Preliminary Action|Beforehand Cushioning|Intermediary|Cheap Dispensables)\\b"
+            message: "当催化剂未发现矛盾时，报告不得凭空编造目录模式。"

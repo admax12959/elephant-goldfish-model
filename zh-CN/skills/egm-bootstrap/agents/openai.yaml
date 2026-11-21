@@ -1,0 +1,7 @@
+# 原文路径: skills/egm-bootstrap/agents/openai.yaml
+interface:
+  display_name: "EGM 引导（Bootstrap）"
+  short_description: "为代码库创建目录级契约指南"
+  icon_small: "./assets/icon.svg"
+  icon_large: "./assets/icon.svg"
+  brand_color: "#1B6EF3"
