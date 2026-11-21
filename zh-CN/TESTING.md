@@ -44,7 +44,7 @@ python -m pip install --group test
 单元测试完全离线运行，无需网络访问、API 密钥或模型依赖。它们校验 YAML Frontmatter Schema 与相对链接完整性、可移植插件清单（portable plugin manifest）、共享元数据一致性以及插件市场/组件路径。
 
 读取钩子（read-hook）测试需要 POSIX `sh`，工作流门禁（workflow-gate）测试需要 `PATH` 中存在 `bash` 以执行工作流的实际 Shell 步骤。在 Windows 上，请使用 Git for Windows 并在 Git Bash 中运行测试，或者将其 `bin` 目录（包含 `sh.exe`）添加到当前 PowerShell 会话的 `PATH` 中。使用 `python -m venv .venv` 创建环境，然后在 PowerShell 中执行 `.venv\Scripts\Activate.ps1` 或在 Git Bash 中执行 `source .venv/Scripts/activate` 激活，再按上述说明安装测试依赖。
-通过 `.gitattributes`，Shell 脚本始终使用 LF 换行符，即使启用了 Git 的 `core.autocrlf` 也是如此。CI 会在 Ubuntu 和 Windows 上运行这套离线套件；但这并不等同于确立对原生宿主工作流的支持。
+即使启用了 Git 的 `core.autocrlf`，Shell 脚本也会通过 `.gitattributes` 强制保持 LF 换行符。CI 会在 Ubuntu 和 Windows 上运行这套离线套件；但这并不等同于确立对原生宿主工作流的支持。
 
 `CI` 检查会等待两个单元测试作业完成；只要任一校验失败、被取消或被跳过，即判定失败。包含站点校验的工作流也必须将其列为 `CI` 的依赖项。同一 Pull Request 的新推送会取消先前的运行，而推送到 `main` 分支的运行则保持相互独立。
 
@@ -127,7 +127,7 @@ EGM_CODEX_RELEASE_ZIP=/absolute/path/to/egm-openai-0.1.0.zip \
 ### 解读原生测试结果
 
 完整运行报告请保留在 [PR 描述](https://github.com/google/elephant-goldfish-model/pull/103)中。
-上表仅为摘要。请在每份报告中记录被测提交、客户端版本、执行命令、原生证据与已知限制。解析 JSONL 时请严格按字面 LF（`\n`）切分；Python 的 `splitlines()` 会把 JSON 字符串内部的合法 Unicode 换行符也切分开。
+上表仅为摘要。请在每份报告中记录被测提交、客户端版本、执行命令、原生证据与已知限制。解析 JSONL 时请严格按字面 LF（`\n`）切分；Python 的 `splitlines()` 还会误切分 JSON 字符串内部的合法 Unicode 字符。
 
 云端验证缺口追踪见 [#105（Cowork）](https://github.com/google/elephant-goldfish-model/issues/105) 与 [#106（ChatGPT Work）](https://github.com/google/elephant-goldfish-model/issues/106)。
 

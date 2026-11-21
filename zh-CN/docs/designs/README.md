@@ -2,13 +2,13 @@
 
 # EGM 设计规格文档
 
-本目录包含定义大象-金鱼模型 (EGM) 框架、技能、评审智能体人格及运维护栏的权威技术设计规格文档。
+本目录包含定义大象-金鱼模型 (EGM) 框架、技能、评审员智能体人格及运行护栏的权威技术设计规格文档。
 
 | 文档 | 作者 | 主要组件 |
 | :------- | :----- | :---------------- |
 | [site_documentation.md](site_documentation.md)<br>提议的多页面指南、技能参考手册与共享站点界面。 | [@n3wth](https://github.com/n3wth) | 网站与文档 |
 | [lite.md](lite.md)<br>快速临时工程协议，采用解耦的 5 阶段状态机并结合大象与金鱼智能体人格切换，适用于小型快速迭代、规格修订、代码重构及缺陷修复。 | [@njeunje](https://github.com/njeunje) | [`egm-lite`](../../skills/egm-lite/SKILL.md) |
-| [triz_integration.md](triz_integration.md)<br>苏联 TRIZ（发明问题解决理论）方法集成草案，引入发明催化剂（Inventive Catalyst）智能体人格，以消除 `/egm-brainstorm` 和 `/egm-review` 步骤 5 中的伪架构妥协。 | [@briansuchy](https://github.com/briansuchy) | [`egm-brainstorm`](../../skills/egm-brainstorm/SKILL.md)、[`egm-review`](../../skills/egm-review/SKILL.md) (#37) |
+| [triz_integration.md](triz_integration.md)<br>苏联 TRIZ（发明问题解决理论）方法集成草案，引入发明催化剂（Inventive Catalyst）智能体人格，以消除 `/egm-brainstorm` 和 `/egm-review` 步骤 5 中的架构伪妥协。 | [@briansuchy](https://github.com/briansuchy) | [`egm-brainstorm`](../../skills/egm-brainstorm/SKILL.md)、[`egm-review`](../../skills/egm-review/SKILL.md) (#37) |
 | [ask.md](ask.md)<br>只读命令草案，用于回答关于 EGM 的问题并根据工作区产物推荐下一个技能。 | [@smituparmar01](https://github.com/smituparmar01) | `egm-ask` (#175) |
 | [skill_icons.md](skill_icons.md)<br>供插件、README 和网站共享的权威技能图标资产。 | [@n3wth](https://github.com/n3wth) | 技能展示 |
 | [runtime_packaging.md](runtime_packaging.md)<br>已实现的运行时打包边界、权限与校验机制。 | [@n3wth](https://github.com/n3wth) | 运行时打包实现 (#136) |

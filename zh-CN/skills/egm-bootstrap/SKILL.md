@@ -7,7 +7,7 @@ description: 为整个代码仓库子树引导生成符合规范的目录 README
 
 > **原文路径**：`skills/egm-bootstrap/SKILL.md` | 本文档为中文学习翻译版，保留英文原文件以便对照。
 >
-> 💡 **第一性原理提示**：该技能的核心设计思想是通过“花生与干草模型”（叶子节点代码契约 + 父级目录蓝图索引）为代码库建立自底向上的上下文地图，从而防止 AI 代理在大型仓库中迷失或产生幻觉。通过广度优先搜索（BFS）增量扫描、15 目录安全门禁与只读金鱼侦察兵分块扫描机制，它严格控制了上下文窗口膨胀与并发开销，并确保所有文档声明都锚定在真实的代码符号之上。
+> 💡 **第一性原理提示**：该技能的核心设计思想是通过“花生与干草模型”（叶子节点代码契约 + 父级目录蓝图索引）为代码库建立自底向上的上下文地图，从而防止 AI 智能体在大型仓库中迷失或产生幻觉。通过广度优先搜索（BFS）增量扫描、15 目录安全门禁与只读金鱼侦察兵分块扫描机制，它严格控制了上下文窗口膨胀与并发开销，并确保所有文档声明都锚定在真实的代码符号之上。
 
 # EGM 花生与干草引导技能（`egm-bootstrap`）
 
@@ -16,14 +16,14 @@ description: 为整个代码仓库子树引导生成符合规范的目录 README
 
 ## 概述
 
-本技能用于在目录树中自动化完成符合大象-金鱼模型（EGM）规范的 `README.md` 文件的创建、修正、格式化以及正确性验证。它为人类开发者与 AI 助手建立清晰的架构契约（接口、不变量与副作用）。
+本技能在目录树中自动创建、修正、格式化并校验符合大象-金鱼模型（EGM）规范的 `README.md` 文件，为人类开发者与 AI 助手建立清晰的架构契约（接口、不变量与副作用）。
 
 *   **花生（Peanuts）**：叶子层级的组件包 README，包含具体的文件级契约。
 *   **干草（Hay）**：父层级的仓库蓝图，将子级接口契约汇总为高海拔索引。
 
 ## 委派机制
 
-金鱼（Goldfish）运行在没有对话历史的新鲜上下文中。请使用你所在宿主环境的子智能体工具派生每个子智能体（Antigravity：`invoke_subagent`；Claude Code：`Agent`；Codex：`spawn_agent`）。每个子智能体均定义在 `agents/<file>.md` 中，其 frontmatter 中的 `name`（例如 `egm-zoom-out`）即为你所在宿主环境注册命名子智能体时需要请求的子智能体类型。否则，请派生一个通用子智能体，并要求它首先阅读对应的人格文件。原样传递提示词并等待报告返回。如果你的宿主环境不支持嵌套派生子智能体，请改用直接调度模式以替代合成器。详见 `docs/harnesses.md`。
+金鱼（Goldfish）运行在没有对话历史的新鲜上下文中。请使用当前宿主环境的子智能体工具派生各个子智能体（Antigravity：`invoke_subagent`；Claude Code：`Agent`；Codex：`spawn_agent`）。每个子智能体均定义在 `agents/<file>.md` 中；若宿主环境支持注册命名子智能体，其 frontmatter 中的 `name`（例如 `egm-zoom-out`）即是要请求的子智能体类型。否则，请派生通用子智能体，并指示其先阅读对应的智能体人格文件。原样传入提示词并等待报告返回。若宿主环境不支持嵌套子智能体，请绕过合成器改用直接派发模式。详见 `docs/harnesses.md`。
 如果你的宿主环境没有子智能体工具，请内联执行侦察步骤。
 
 ## 输入参数
@@ -82,7 +82,7 @@ description: 为整个代码仓库子树引导生成符合规范的目录 README
 2.  **安全门禁与派生审批（关键）**：在 BFS 循环期间，如果累计发现的目录总数超过 **15** 个，必须立即暂停发现过程并请求用户批准（若宿主环境支持结构化提问工具则使用该工具，否则在聊天中询问），警告用户并征求全树执行的许可：
 
     *   `question`："The target directory tree contains more than 15 subdirectories. This is a large execution scope: up to 5 parallel workers, and at least one scout per code directory (one per ~1,500 lines of source). Do you want to proceed with full-tree bootstrapping?"（目标目录树包含超过 15 个子目录。本次执行范围较大：最多派生 5 个并行工作节点，且每个代码目录至少派生 1 个侦察兵（约每 1,500 行源码 1 个）。是否继续执行全树引导？）
-    *   `options`：`["Yes, proceed with full tree bootstrapping", "No, abort execution"]`
+    *   `options`：`["Yes, proceed with full tree bootstrapping", "No, abort execution"]`（`["是，继续执行全树引导", "否，中止执行"]`）
     *   （关键：请求批准后，你**必须**等待用户回复，然后才能继续或派生任何工作节点）。
     *   如果用户选择中止，立即终止执行。
 
@@ -122,8 +122,8 @@ description: 为整个代码仓库子树引导生成符合规范的目录 README
         6.  回退策略：如果 `depth` 达到 3 时节点数仍然 < 3，则选择根节点的直接子目录（或回退到顺序执行）。
     *   **派生子编排器**：为每个分区子树根使用宿主环境的子智能体工具派生一个并行工作节点：
         *   子智能体：`egm-bootstrap-orchestrator`（`agents/bootstrap_orchestrator.md`）（或通用子智能体）
-        *   `Prompt`："Run egm-bootstrap with path=`[path]`, is_worker=true, sub_tree_root=`[partition_root]`, target_filename=`[target_filename]`."
-    *   **工作节点上限**：并行派生子编排器，数量绝不超过 5 个。
+        *   `Prompt`："Run egm-bootstrap with path=`[path]`, is_worker=true, sub_tree_root=`[partition_root]`, target_filename=`[target_filename]`."（以 `path=[path]`、`is_worker=true`、`sub_tree_root=[partition_root]`、`target_filename=[target_filename]` 运行 `egm-bootstrap`。）
+    *   **工作节点上限**：并行派生子编排器，总数绝不超过 5 个。
     *   进入空闲等待状态，待所有工作子智能体返回其 JSON 子树索引载荷后，跳转至**步骤 5：根目录汇总与终止**。
 
 ---
@@ -149,7 +149,7 @@ description: 为整个代码仓库子树引导生成符合规范的目录 README
 
     *   **侦察兵派生与约束**：为 `D` 派生 `goldfish-explorer`。
 
-        *   *侦察约束*：不设单目录或单文件字节上限；`D` 中的每个非测试文件都必须完整读取。作为替代，将每次侦察调用的规模限制在约 **1,500 行**源码以内：先用搜索工具列出顶层定义（class/func/def/route/flag 所在行），按这些边界将该目录的文件切分为块（绝不能在函数/类体中间切断；小文件可共享同一块），为每一块并行派生一个 `goldfish-explorer`（同时最多 5 个，其余排队），最后合并其返回的 JSON。将文件的 imports 和顶层定义列表一并提供给每一块，以便其判断可见性。在将 RPC 服务、模式或消息类型归属到本地文件之前，请先检查构建清单依赖和 `import` / `#include` 语句。按以下顺序读取非测试文件：
+        *   *侦察约束*：不设单目录或单文件字节上限；`D` 中的每个非测试文件都必须完整读取。改用约 **1,500 行**源码作为单次侦察调用的上限：先用搜索工具列出顶层定义（class/func/def/route/flag 所在行），沿这些边界将目录内的文件切分为多个分块（绝不在函数或类体中间截断；小文件可合并至同一分块），为每个分块并行派生一个 `goldfish-explorer`（并发上限 5 个，超出部分排队），最后合并各分块返回的 JSON。将文件的 imports 和顶层定义列表一并提供给每个分块，以便其判断可见性。在将 RPC 服务、模式或消息类型归属到本地文件之前，请先检查构建清单依赖和 `import` / `#include` 语句。按以下顺序读取非测试文件：
             1.  契约、模式与构建清单（`.h`、`.hh`、`.hpp`、`.proto`、`.graphql`、`.gql`、`.thrift`、`.prisma`、`.sql` DDL、接口类）；提取精确的 DDL 表名与导出的构建目标。
             2.  模块入口文件（`main.*`、`index.*`、`lib.*`、`mod.*`、`__init__.py` 或与目录同名的文件），随后按字母顺序读取生产源码/查询文件。
             3.  模板与配置文件：每个文件最多读取 200 行（纯配置目录最多 800 行）；排除 `.css`/`.scss`。
@@ -160,7 +160,7 @@ description: 为整个代码仓库子树引导生成符合规范的目录 README
 
         *   *传播启发式规则*：
             1.  如果子目录是在本次运行中生成的文档，直接从内存执行缓存中获取其公共接口。
-            2.  如果子目录是经修正/修改的（遵循修正策略），则使用合并后的遗留提取符号。
+            2.  如果子目录是按修正策略更新过的，则使用与遗留文档提取结果合并后的符号集。
         *   在调用 `P` 的探索侦察兵时，将这些子级符号块作为提示词上下文传入。
 
     *   **验证命令目标查找**：使用已发现的 `VerificationCommand` 填充“验证（Verification）”章节。
@@ -180,7 +180,7 @@ description: 为整个代码仓库子树引导生成符合规范的目录 README
 
 3.  **工作节点报告**：分配的子树遍历完成后，整理 `subtree_index` 数组，包含每个已处理目录的 `path`、`summary`、`interface`、`invariants` 和 `side_effects`。
 
-4.  如果 `is_worker` 为 `true`，请先读取权威工作节点返回接口定义 [worker-return.schema.json](../../../skills/egm-bootstrap/references/worker-return.schema.json)，然后向根编排器返回符合该 Schema 的 JSON 载荷并终止。如果 `is_worker` 为 `false`（顺序模式），直接进入**步骤 5：根目录汇总与终止**。
+4.  如果 `is_worker` 为 `true`，请先读取相对于本技能目录的 [工作节点返回接口 Schema](../../../skills/egm-bootstrap/references/worker-return.schema.json)，然后向根编排器返回符合该 Schema 的 JSON 载荷并终止。如果 `is_worker` 为 `false`（顺序模式），直接进入**步骤 5：根目录汇总与终止**。
 
 ---
 
@@ -210,10 +210,10 @@ description: 为整个代码仓库子树引导生成符合规范的目录 README
     *   **有效且可解析的链接（关键）**：确保所有子目录和兄弟目录链接都使用合法的相对路径（`./subdir/${target_filename}` 或 `./subdir/SKILL.md`），并显式验证每个被引用的目标文件在文件系统上真实存在。移除或修正所有损坏的相对引用。
     *   **合法目标**：验证测试目标与项目测试配置一致，且使用合法目标语法（对于 Bazel，使用 `/...` 或 `:all`，绝不使用 `:...`）。
 
-5.  **可选漂移审查（关键）**：验证完成后，询问用户（若宿主环境提供结构化提问工具则使用该工具，否则在聊天中询问）是否对本次生成的文档更新运行漂移报告：
+5.  **可选漂移评审（关键）**：验证完成后，询问用户（若宿主环境提供结构化提问工具则使用该工具，否则在聊天中询问）是否对本次生成的文档更新运行漂移报告：
 
     *   `question`："Do you want to run the EGM Drift Report on the generated contract updates to check for consistency with the codebase?"（是否要对本次生成的契约更新运行 EGM 漂移报告，以检查其与代码库的一致性？）
-    *   `options`：`["(Recommended) Yes, run drift report on modified contracts", "No, skip drift review"]`
+    *   `options`：`["(Recommended) Yes, run drift report on modified contracts", "No, skip drift review"]`（`["（推荐）是，对已修改的契约运行漂移报告", "否，跳过漂移评审"]`）
     *   如果用户选择“是（Yes）”，则针对已修改的契约文件运行 `egm-drift-report` 技能，同时核查遗漏的代码覆盖以及文档到代码的幻觉（将每一个文档记录的方法、路由、枚举、数据库表和不变量与本地源文件逐一比对，并将差异记录在漂移报告中供人类分诊）。（注：虽然 `egm-drift-report` 常用于设计文档，但也可作为变体应用于符合 EGM 规范的契约文件）。
 
 6.  成功终止执行。

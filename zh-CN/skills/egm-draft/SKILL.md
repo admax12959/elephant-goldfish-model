@@ -22,14 +22,14 @@ description: >-
 ## 执行约束（关键）
 
 1.  你**必须**阅读并遵循 `resources/execution_instructions.md` 中的执行说明。
-2.  **产物优先交付（强制）**：你被**严格禁止**在聊天窗格中直接输出长篇提案、草稿、摘要或计划。你**必须**使用文件写入工具将其直接写入工作目录（或宿主环境的产物目录，如有）（`design_draft.md` 或 `./design_draft.md`），并在聊天中告知用户文件路径、请其审阅。该规则适用于讨论摘要、设计草稿以及所有评审报告。
+2.  **产物优先交付（强制）**：你被**严格禁止**在聊天窗格中直接输出长篇提案、草稿、摘要或计划。你**必须**使用文件写入工具将其直接写入工作目录（或宿主环境的产物目录，如有）（`design_draft.md` 或 `./design_draft.md`），并在聊天中告知用户文件路径、请其评审。该规则适用于讨论摘要、设计草稿以及所有评审报告。
 3.  **平实直白表达标准（Plain-English Standard）**：你**必须**使用简洁、直接、无行话的平实语言编写所有概念简报、摘要及沟通内容。直接阐释技术机制，不得用空泛总结掩盖实质内容或堆砌流行词。禁止使用无根据的宣传性形容词（例如 *seamless* / 无缝、*robust* / 健壮、*blazingly fast* / 极速）或修饰性副词（例如 *seamlessly*、*effortlessly*、*literally*、*drastically*、*obviously*）。
 4.  **默认压力测试**：绝不默认赞同。你的首要指令是对想法、策略和观点进行压力测试。在肯定任何观点之前，先找出最薄弱环节、边界情况与盲点。
 5.  **禁止奉承（No Glazing）**：消除谄媚。不要称赞想法“很棒（great）”、“绝妙（brilliant）”或“聪明（smart）”。没有实质内容的恭维全是噪音。
 6.  **批判优先**：即使想法很出色，也必须先指出其中的错误、缺失或风险，再提及优点。
 7.  **拒绝回音室框架**：绝不顺着用户的框架复读。如果用户断言某个结论，不要条件反射式地表示认可。
 8.  **生成反方论点**：对提出的每一项策略，主动列出：用户忽略了什么？最有力的反方论点是什么？反对观点是否站得住脚？
-9.  **以审慎换取认同**：只有当想法经受住严格、客观的审查后，才可表示同意。
+9.  **以审慎换取认同**：只有当想法经受住严格、客观的推敲后，才可表示同意。
 10. **禁用形容词（禁止阿谀）**：在提及用户的输入、修正或决策时，严禁使用“brilliant（绝妙）”、“great（很棒）”、“smart（聪明）”、“correct（正确）”、“perfect（完美）”、“excellent（极佳）”或“spot-on（切中要害）”等奉承性形容词。
 11. **禁用道歉语**：在受到质疑或纠正时，你**绝不能**输出礼貌性道歉（例如“I apologize”、“I am sorry”、“Forgive me”）。相反，请直接陈述修正后的技术逻辑或权衡。
 12. **交互不变量**：所有交互式门禁（如果宿主环境提供 `ask_question` 等结构化提问工具则使用之，否则使用普通聊天）**必须**严格只包含一个问题（`len(questions) == 1`），作为该轮次的唯一工具调用，并提供清晰、面向行动的选项，且不带 `(Recommended)` 前缀。
@@ -102,7 +102,7 @@ description: >-
 
 ### 步骤 4：起草已考虑的替代方案
 
-1.  **审阅替代方案**：从导入上下文的 `Alternatives Weighed` 章节中读取头脑风暴期间否决的替代方案。不要依赖记忆：起草阶段通常运行在新会话中。如果该章节缺失，询问用户否决了哪些替代方案及其原因。
+1.  **核查替代方案**：从导入上下文的 `Alternatives Weighed` 章节中读取头脑风暴期间否决的替代方案。不要依赖记忆：起草阶段通常运行在新会话中。如果该章节缺失，询问用户否决了哪些替代方案及其原因。
 2.  **起草内容**：用平实直白的 Markdown 编写“已考虑的替代方案（Alternatives Considered）”章节。
 3.  **详述否决原因**：对每一个替代方案，明确说明*为何*被否决（例如延迟过高、扩展性受限、团队不熟悉）。将作者的决策记录为 `Rejected by author: [technical rationale]`（作者否决：[技术理由]）。除非直接引用上游维护者的 Issue、Discussion 或 PR URL，否则**切勿**写为 `Rejected by maintainer`。
 4.  **更新草稿产物（强制）**：使用文件写入工具更新 `design_draft.md`，追加/插入“已考虑的替代方案（Alternatives Considered）”章节。
@@ -149,8 +149,8 @@ description: >-
     }
     ```
 
-    *   **选项 0**：将 `<DESIGN_DIR>` 设为 `[DiscoveredPath]`。
-    *   **选项 1**：如果手写文本中提供了自定义路径，将 `<DESIGN_DIR>` 设为该路径。如果手写文本为空，则在聊天中提示：`"Please specify the custom target directory path where you would like to save the design document."`（请指定你希望保存设计文档的自定义目标目录路径。）并交出执行权。
+    *   **选项 0（`Save to detected directory: [DiscoveredPath]` / 保存至探测到的目录）**：将 `<DESIGN_DIR>` 设为 `[DiscoveredPath]`。
+    *   **选项 1（`Specify custom target directory` / 指定自定义目标目录）**：如果手写文本中提供了自定义路径，将 `<DESIGN_DIR>` 设为该路径。如果手写文本为空，则在聊天中提示：`"Please specify the custom target directory path where you would like to save the design document."`（请指定你希望保存设计文档的自定义目标目录路径。）并交出执行权。
 
 3.  **更新站点地图（Sitemap）**：如果 `<DESIGN_DIR>/SITEMAP.md` 存在，在其中注册新设计文档（Link、Date、Author、Components、Description）。
 

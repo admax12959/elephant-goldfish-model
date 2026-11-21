@@ -246,24 +246,24 @@ scenarios:
 
   - scenario_id: "readme_grounding_and_inline_checklist_comments"
     description: >-
-      验证第 1 节会立足目标文件、直接调用方或测试以及所在目录已有的 README.md 或用户引用文档，
+      验证第 1 节在溯源核实（grounding）时会阅读目标文件、直接调用方或测试以及所在目录已有的 README.md 或用户引用文档，
       且第 3 节会应用留在 egm_lite_checklist.md 上的行内评论。
     eval_type: "deterministic"
     system_prompt:
       skill_file: "skills/egm-lite/SKILL.md"
     turns:
       - user_input: >-
-          1) 按第 1 节，你在立足代码时必须阅读哪些本地文件和文档？
+          1) 按第 1 节，你在进行代码与文档溯源核实（grounding）时必须阅读哪些本地文件和文档？
           2) 按第 3 节，如果用户在批准 egm_lite_checklist.md 时留下了行内评论，你会如何处理？
         assertions:
           - type: "required_pattern"
             pattern: "(caller|test)"
             message: >-
-              第 1 节立足代码必须包含目标文件的直接调用方或测试。
+              第 1 节的代码与文档溯源核实（grounding）必须包含目标文件的直接调用方或测试。
           - type: "required_pattern"
             pattern: "README\\.md"
             message: >-
-              第 1 节立足代码必须包含所在目录已有的 README.md 或用户引用文档。
+              第 1 节的代码与文档溯源核实（grounding）必须包含所在目录已有的 README.md 或用户引用文档。
           - type: "required_pattern"
             pattern: "(inline|comment|adjustment)"
             message: >-

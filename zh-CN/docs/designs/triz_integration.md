@@ -215,10 +215,10 @@ Otherwise, for each finding, include:
 1.  **步骤 5（初始战略评审）配对**：在 `skills/egm-review/SKILL.md` 中，更新 `Subflow: Zoom Out Review`（步骤 5）以派生**两位并发高海拔审计员**：
     *   `egm-zoom-out`：依据 `zoom-out-standard.md` 审计 YAGNI、过度工程与根因对齐。
     *   `egm-inventive-catalyst`：不依赖外部文档标准（而是依赖其自包含内联目录，类似于 `egm-comprehension`），针对 `full file` 审计基础性伪妥协与发明机会。
-2.  **建议性检查点门禁**：步骤 5 是一个交互式人工检查点门禁。来自发明催化剂的发现会记录在 `zoom_out_report.md` 的 **Inventive Opportunities（发明机会）**章节下。作者可选择在继续前尽早调整架构方向。在 `Subflow: Uninterrupted Full Flow` 中，`zoom_out_report.md` 中的这些建议性机会被排除在强制缺陷修复追踪矩阵之外。
+2.  **建议性检查点门禁**：步骤 5 是一个交互式人类检查点门禁。来自发明催化剂的发现会记录在 `zoom_out_report.md` 的 **Inventive Opportunities（发明机会）**章节下。作者可选择在继续前尽早调整架构方向。在 `Subflow: Uninterrupted Full Flow` 中，`zoom_out_report.md` 中的这些建议性机会被排除在强制缺陷修复追踪矩阵之外。
 3.  **单向评审流水线**：由于基础性妥协已在步骤 5 完成评估：
     *   步骤 6（`egm-comprehension`）审计文档清晰度。
-    *   步骤 7（`egm-design`、`egm-structural`、`egm-style`）审计实现机制，不会产生循环拉扯。
+    *   步骤 7（`egm-design`、`egm-structural`、`egm-style`）审计实现机制，不会产生循环修复振荡（cyclic whiplash）。
     *   步骤 8（`egm-zoom-out`）在步骤 9 就绪测试前充当最终剪枝剪刀，在已化解权衡的语境下评估被采纳的发明解决方案，确保合理的冲突化解不会被误判为过早引入的复杂度。
 
 --------------------------------------------------------------------------------
@@ -250,7 +250,7 @@ Otherwise, for each finding, include:
 
 *   **描述**：将 TRIZ 提示词注入 `design_critic.md` 或 `zoom_out.md`，而非创建新的智能体人格。
 *   **优点**：避免向 `agents/` 目录增加新的智能体人格文件。
-*   **缺点**：稀释现有智能体人格的核心使命。`design_critic` 专为怀疑与悲观审视而设计；强行要求它同时充当发明型头脑风暴者会制造指令冲突并降低评审发现质量。
+*   **缺点**：稀释现有智能体人格的核心使命。`design_critic` 专为怀疑与悲观评审而设计；强行要求它同时充当发明型头脑风暴者会制造指令冲突并降低评审发现质量。
 *   **驳回理由**：EGM 依赖隔离的、单一职责的批评家。专用智能体人格可使评估思维与发明思维保持清晰分离。
 
 ### 替代方案 B：通过自定义弹窗工具提供交互式多选门禁
@@ -278,7 +278,7 @@ Otherwise, for each finding, include:
 
 *   **描述**：将 `egm-inventive-catalyst` 加入步骤 7（`egm-review-loop`）的阻塞式修复循环。
 *   **优点**：与设计批评家一同在 `FeatureRange` 上运行。
-*   **缺点**：会与步骤 8（`egm-zoom-out`）产生严重的循环拉扯，后者会立刻剪除步骤 7 新增的复杂度。此外，映射到 `feature-spec-standard.md` 会制造虚构契约。
+*   **缺点**：会与步骤 8（`egm-zoom-out`）产生严重的循环修复振荡（cyclic whiplash），后者会立刻剪除步骤 7 新增的复杂度。此外，映射到 `feature-spec-standard.md` 会制造虚构契约。
 *   **驳回理由**：将发明催化剂置于步骤 5 可在逐行评审前提供最早的战略权衡审计，构建无阻塞循环的单向流水线。
 
 --------------------------------------------------------------------------------
@@ -383,7 +383,7 @@ Otherwise, for each finding, include:
     *   `skills/egm-brainstorm/TEST.md`：更新测试预期与视角枚举以包含发明催化剂（7 个视角）。
     *   `skills/egm-review/TEST.md`：更新步骤 5 测试预期，验证并发执行拉远视角与发明催化剂的初始战略评审。
     *   `skills/egm-brainstorm/test_scenarios.yaml`：添加行为测试场景，断言 `## Analysis` 章节指出了一项发明矛盾、针对该矛盾建议的目录模式及其次生权衡，并添加一个场景验证输入已最优时的“No false compromise detected”提前退出护栏。
-    *   `skills/egm-review/test_scenarios.yaml`：添加场景验证步骤 5 对伪架构妥协的检测以及提前退出护栏。
+    *   `skills/egm-review/test_scenarios.yaml`：添加场景验证步骤 5 对架构伪妥协的检测以及提前退出护栏。
     *   `tests/unit/test_frontmatter.py`：添加校验断言，确保 `agents/` 下所有 Markdown 文件均符合 frontmatter 规范。
     *   `adapters/opencode/install.py`：将 `agents["egm"]["prompt"]` 引导字符串从“complete all six brainstorm reviewers”更新为“all seven”。
     *   `tests/unit/test_opencode_adapter.py`：将智能体数量断言从 8 更新为 9（`assert len(config["agent"]) == 9`）。

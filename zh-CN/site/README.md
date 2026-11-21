@@ -2,7 +2,7 @@
 
 > **原文路径**：`site/README.md` | 本文档包含 `site/README.md` 的完整忠实中文翻译，以及文末附加的 `site/` 工程架构精解，保留英文原文件以便对照。
 >
-> 💡 **第一性原理提示**：`site/`（https://egm.dev）不仅是一个静态文档站，更体现了 EGM 的**单一事实来源（Single Source of Truth）**与**零隐私侵入（Zero-Telemetry by Default）**原则：文档直接从仓库 `docs/site/` 加载、技能图标直接复用 `skills/*/assets/icon.svg`、仓库内相对链接在构建期自动安全改写为 GitHub URL，并通过 Node 原生 `vm` 沙箱测试严格守卫 Cookie 同意门禁与无障碍交互。
+> 💡 **第一性原理提示**：`site/`（https://egm.dev）不仅是一个静态文档站，更体现了 EGM 的**单一事实来源（Single Source of Truth, SSOT）**与**零隐私侵入（Zero-Telemetry by Default）**原则：文档直接从仓库 `docs/site/` 加载、技能图标直接复用 `skills/*/assets/icon.svg`、仓库内相对链接在构建期自动安全改写为 GitHub URL，并通过 Node 原生 `vm` 沙箱测试严格守卫 Cookie 同意门禁与无障碍交互。
 
 大象-金鱼模型（Elephant-Goldfish Model, EGM）的官方网站与文档站，通过 GitHub Pages 部署于 https://egm.dev 。
 

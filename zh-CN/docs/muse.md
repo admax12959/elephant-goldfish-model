@@ -21,7 +21,7 @@ muse plugins install ./elephant-goldfish-model --scope user
 muse plugins approve egm
 ```
 
-在本仓库上运行 `marketplace add` 会发现零个插件：Muse 会优先读取 Codex 目录（`.agents/plugins/marketplace.json`）并跳过其中的条目，因此不会继续回退读取 Claude 目录。请改为从本地路径安装，并确保源码目录不包含符号链接（先删除 `.venv/` 等临时目录，安装器会拒绝符号链接条目）。只需批准一次：插件启用期间技能无需审核即可保持活跃，但十个智能体定义必须在执行 `approve` 后才会激活。
+在本仓库上运行 `marketplace add` 会发现零个插件：Muse 会优先读取 Codex 目录（`.agents/plugins/marketplace.json`）并跳过其中的条目，因此不会继续回退读取 Claude 目录。请改为从本地路径安装，并确保源码目录不包含符号链接（先删除 `.venv/` 等临时目录，安装器会拒绝符号链接条目）。只需批准一次：插件启用期间技能无需评审即可保持活跃，但十个智能体定义必须在执行 `approve` 后才会激活。
 
 安装完成后启动一个新会话。技能将以 `plugin:egm:egm-*` 的形式呈现，且仅支持用户显式调用激活；可通过 `muse skills list --source plugin` 确认。该命令输出的是 `plugin://` URI 而非文件系统路径；请从 `muse plugins inspect egm` 的 `cache=` 字段获取已安装路径。切勿假定某个特定的缓存目录、版本号或检出位置。
 

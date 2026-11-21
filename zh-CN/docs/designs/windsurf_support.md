@@ -152,7 +152,7 @@ Cognition 于 2026-06-02 将 Windsurf 更名为 Devin Desktop。Devin Local 取�
 - 在 [#379](https://github.com/google/elephant-goldfish-model/pull/379) 合并前，维护者必须评审 [#376](https://github.com/google/elephant-goldfish-model/issues/376) 下的阶段 1 范围。
 - 作者于 2026-11-10 在 Devin CLI 上运行了子智能体委派、只读拒绝与会话存储核查（见[已记录的 CLI 证据](#cli-2026-11-10)）。尚无贡献者在 Windsurf IDE（Devin Desktop）中运行，也尚未运行至产出最终产物。
 - 维护者需决定 Devin CLI 证据是否可计入晋升门禁，还是仅认可 IDE 证据（两者底层均运行 Devin Local）。
-- 作者于 2026-11-10 对照特性规格标准运行了 EGM 结构化、风格与设计批判者金鱼评审员，并在本草案及 [#379](https://github.com/google/elephant-goldfish-model/pull/379) 中解决了全部 Blocker 与 Major 发现项。
+- 作者于 2026-11-10 对照特性规格标准运行了 EGM 结构校验员（Structural）、风格编辑（Style）与设计批评家（Design Critic）金鱼评审员，并在本草稿及 [#379](https://github.com/google/elephant-goldfish-model/pull/379) 中裁决解决了全部 Blocker 与 Major 发现项。
 
 ## 调研参考资料
 

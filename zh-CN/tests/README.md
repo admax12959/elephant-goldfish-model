@@ -53,7 +53,7 @@ flowchart TB
 | 测试文件 | 守卫的核心不变量 |
 | :--- | :--- |
 | `test_frontmatter.py` | 所有 `skills/*/SKILL.md` 和 `agents/*.md` 必须包含合法的 YAML Frontmatter 且关键元数据字段完整。 |
-| `test_link_integrity.py` | 仓库内所有 Markdown 相对路径链接必须在磁盘上真实可解析；校验标题锚点 slug 规则（每个空格保留单个连字符）。 |
+| `test_link_integrity.py` | 仓库内所有 Markdown 相对路径链接必须在磁盘上真实可解析；校验标题锚点 slug 规则（不合并连续空格，每个空格各转为一个连字符，与 GitHub 锚点规则一致）。 |
 | `test_markdown_tables.py` | 禁止 Markdown 表格出现会导致 GitHub 渲染崩溃的多行续行（multiline continuation rows）。 |
 | `test_skill_load_limits.py` | 确保所有 `SKILL.md` 正文体积不超过 Antigravity 宿主的单文件正文加载上限，防止技能指令被静默截断。 |
 | `test_scenario_coverage.py` | 强制每个技能目录下都必须配有同位置的测试场景文档（co-located test scenarios），确保行为覆盖无死角。 |
@@ -64,7 +64,7 @@ flowchart TB
 | 测试文件 | 守卫的核心不变量 |
 | :--- | :--- |
 | `test_harnesses.py` | 全仓最核心的多宿主契约测试（16 个测试函数）：校验根 `plugin.json` Schema、OpenAI 提交元数据与资产、各宿主清单版本与根一致、Marketplace 解析共享包、Claude 评审员只读且零上下文、Claude `synthesizer` 工具受限、`bootstrap` 并行工作线程与侦察员上限、临时文件必须落在私有目录、JSONL 保留 Unicode 分隔符等。 |
-| `test_cursor.py` | 离线校验 Cursor 插件清单、原生适配器选择、评审员引用规范人格、重定位包后保留全部规范资源、宿主规则文件保留失败与产物契约，以及安装后的原生加载器行为。 |
+| `test_cursor.py` | 离线校验 Cursor 插件清单、原生适配器选择、评审员引用规范人格、重定位包后保留全部规范资源、宿主规则文件完整保留“失效即阻断（Fail-Closed）”与“产物优先（Artifact-First）”契约，以及安装后的原生加载器行为。 |
 | `test_copilot_adapter.py` | 离线校验 Copilot 配置文件仅使用规范只读评审员、读取前序报告须显式阶段输入、重定位资源完整性以及 VS Code Copilot 工作区设置。 |
 | `test_opencode_adapter.py` | 针对 `adapters/opencode/install.py` 的 12 项安全与契约测试：拒绝覆盖已有目录/悬空符号链接、拒绝模板/通配符/命令插值字符、防止父目录符号链接绕过路径校验、拒绝安装到源码树内或含 `.env.` 的路径、用内置 `v1_match`/`v1_read_effect` 仿真器验证必需文件能通过 `.env` 读取规则。 |
 | `test_windsurf.py` | 校验 `.windsurf/workflows/` 仅作为薄路由指向共享规范 `skills/`，严禁复制粘贴技能正文导致漂移。 |
@@ -76,15 +76,15 @@ flowchart TB
 | `test_packaging.py` | 针对 `scripts/pack_plugin.py` 的 21 项测试：校验构建包完备性与比特级可复现性、技能图标与宿主调色板一致、打包 README 图片、UTF-8 清单读取、拒绝符号链接/路径逃逸/缺失资产/非法 `agents` 或 `icon` 类型、禁用 `hooks` 与 MCP/App 依赖等。 |
 | `test_releases.py` | 针对 `scripts/prepare_release.py` 的 7 项测试：拒绝非法 SemVer Tag、检测任意宿主清单版本漂移、验证生成精确归档与 `SHA256SUMS`、拒绝非法 commit SHA 且不写盘、构建失败时自动清理半成品目录。 |
 | `test_ci_workflow.py` | 离线解析 `.github/workflows/` YAML：验证 CI 汇总门禁等待所有校验任务且全部成功、每个 Job 均设有 `timeout-minutes`、发布流程先装测试依赖再检出 Tag 并产出供应链溯源证明（Provenance Bundle）。 |
-| `test_pr_triage_review.py` | 覆盖 `.github/scripts/review_pr.py`、工作流加固（Zizmor、`ready_for_review`、双 Job 权限边界）、`CODEOWNERS` 范围限定、评论体防 `@mention` 注入清洗、Gemini JSON 响应过滤与 429 重试、模型回退晋升，并驱动 `tests/pr_triage_post.cjs`。 |
+| `test_pr_triage_review.py` | 覆盖 `.github/scripts/review_pr.py`、工作流加固（Zizmor、`ready_for_review`、双 Job 权限边界）、`CODEOWNERS` 范围限定、评论体防 `@mention` 注入清洗、Gemini JSON 响应过滤与 429 重试、模型失败回退链（fallback/escalation），并驱动 `tests/pr_triage_post.cjs`。 |
 | `test_scope_advisory.py` | 将 `.github/workflows/` 中的范围评估脚本通过 stdin 喂给 Node 跑 `tests/scope_advisory.cjs`，验证离线 GitHub API 仿真。 |
 
 ### 3.4 轨迹验证器的对抗性单测（4 个模块）
 
-这 4 个模块专门构造**恶意、残缺、伪造或冲突的模拟轨迹**，确保验证器在任何异常下都严格 **Fail-Closed（失败关闭）**：
-- `test_claude_traces.py`（16 个测试）：校验 Claude 原生对话转录目录解析、子探针必须有成功的 `read` 工具结果、拒绝被拦截的人格必须有关联错误、保留 JSON 内 Unicode。
+这 4 个模块专门构造**恶意、残缺、伪造或冲突的模拟轨迹**，确保验证器在任何异常下都严格 **Fail-Closed（失效即阻断 / 失败关闭）**：
+- `test_claude_traces.py`（16 个测试）：校验 Claude 原生对话转录目录解析、子探针必须有成功的 `read` 工具结果、权限被拦截的人格若调用受限工具则轨迹中必须留有关联的拒绝错误、保留 JSON 内 Unicode。
 - `test_codex_traces.py`（2 个测试）：校验 Codex 命令读取证据必须来自原生轨迹，相对路径需正确解析 `file://` URI 工作目录。
-- `test_cursor_child_reads.py`（13 个测试）：测试关联成功请求、缺失结果、错误调用 ID、错误路径、空输出、畸形调用、非预期条目类型、活跃 SQLite WAL 文件（`test_live_wal_is_rejected`）以及先成功再报错的冲突证据——全部必须失败！
+- `test_cursor_child_reads.py`（13 个测试）：验证关联正确的成功读取能够通过，而缺失结果、错误调用 ID、错误路径、空输出、畸形调用、非预期条目类型、活跃 SQLite WAL 文件（`test_live_wal_is_rejected`）以及先成功再报错的冲突证据——全部必须失败（Fail-Closed）！
 - `test_opencode_trace_verifier.py`（9 个测试）：对抗测试 OpenCode 导出子会话——验证子智能体口头声称“我读过了”绝不能替代真实的原生 `read` 工具调用记录（`test_child_claim_cannot_substitute_for_a_missing_read`），拒绝重复/非规范路径、拒绝冲突结果，同时正确放行多部分终态消息与原生 `<system-reminder>` 后缀。
 
 ---

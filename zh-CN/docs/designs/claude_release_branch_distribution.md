@@ -55,7 +55,7 @@ Claude 目录（Claude directory）是 Anthropic 的插件目录。其提交门�
 ### CUJ 1：维护者发布新版本
 
 *   **前置条件（Given）**：一个发布 PR 已在 `docs/releases.md` 列出的插件清单中提升了 `version`。`main` 上存在对应的 `vMAJOR.MINOR.PATCH` 标签。**Prepare draft release**（`release.yml`）已生成带有来源证明 ZIP 的草稿发布。
-*   **操作（When）**：维护者审查并发布该草稿，随后从 `main` 触发 **Publish Claude runtime branch** 工作流并传入已发布的标签。
+*   **操作（When）**：维护者评审并发布该草稿，随后从 `main` 触发 **Publish Claude runtime branch** 工作流并传入已发布的标签。
 *   **预期结果（Then）**：工作流验证来源证明，在解压前校验归档，并向 `release/claude` 添加一条提交。目录将该提交扫描为一个新版本。
 
 ### CUJ 2：贡献者修改源码文件

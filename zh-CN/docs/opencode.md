@@ -51,7 +51,7 @@ Use the egm-review skill to review /absolute/path/design.md.
 
 当 brainstorm 先于 draft 执行时，须先完成全部七名构思评审员的评审，将其发现汇总为 `concepts_brief.md` 后再开始起草。在 review 阶段，须写出当前已完成阶段的报告后再启动下一阶段。进入第 8 步前，须验证产物目录中存在 `zoom_out_report.md` 并向评审员传递其绝对路径；若该报告缺失则中止。
 
-评审员拒绝除 `read` 和 `glob` 之外的所有工具。之所以拒绝 `grep`，是因为其搜索会绕过宿主的逐文件 `read` 规则（包括 `.env` 排除规则）；请使用受允许的文件读取获取评审上下文。V1 会将 MCP 资源读取与资源列表映射至 `read` 权限：评审员的 `read` 规则允许本地读取，随后拒绝 `mcp:*`，从而拦截 `mcp:<server>:<uri>` 读取以及 `mcp:<server>:*` 资源或模板列表。MCP 资源工具名可能仍可见，但其资源访问会在权限检查处被拒绝。适配器的外部目录例外仅覆盖已安装的包体；OpenCode 也会在解析后的智能体配置中添加对其工具输出目录的访问权限。Shell 命令、编辑、网络工具、MCP 工具、技能调用与委派均保持拒绝。主智能体在执行写入等其他工具时会请求权限。如需评审外部目标文件，请将测试夹具移入项目目录，或单独审查一项最小化权限变更。
+评审员拒绝除 `read` 和 `glob` 之外的所有工具。之所以拒绝 `grep`，是因为其搜索会绕过宿主的逐文件 `read` 规则（包括 `.env` 排除规则）；请使用受允许的文件读取获取评审上下文。V1 会将 MCP 资源读取与资源列表映射至 `read` 权限：评审员的 `read` 规则允许本地读取，随后拒绝 `mcp:*`，从而拦截 `mcp:<server>:<uri>` 读取以及 `mcp:<server>:*` 资源或模板列表。MCP 资源工具名可能仍可见，但其资源访问会在权限检查处被拒绝。适配器的外部目录例外仅覆盖已安装的包体；OpenCode 也会在解析后的智能体配置中添加对其工具输出目录的访问权限。Shell 命令、编辑、网络工具、MCP 工具、技能调用与委派均保持拒绝。主智能体在执行写入等其他工具时会请求权限。如需评审外部目标文件，请将测试夹具移入项目目录，或单独评审一项窄范围的权限变更。
 
 遵循用户提示词或已加载指令中的 `EGM artifact directory: <path>`，将相对输出目录相对于项目目录解析；否则保留权威输出文件名与默认工作目录。严格保留每一个就绪、分节与阶段审批门禁。当原生提问工具不可用时，提出一条纯文本问题并等待用户回答；工具缺失或时间流逝均不构成批准。
 
@@ -106,7 +106,7 @@ python tests/integration/opencode_trace_verifier.py \
 
 ## 接口参考来源
 
-审阅日期：2026-10-24。以下版本化源码定义了本适配器的接口：
+评审日期：2026-10-24。以下版本化源码定义了本适配器的接口：
 
 - [V1 智能体配置](https://github.com/anomalyco/opencode/blob/v1.18.29/packages/web/src/content/docs/agents.mdx)
 - [V1 配置与合并顺序](https://github.com/anomalyco/opencode/blob/v1.18.29/packages/web/src/content/docs/config.mdx)

@@ -77,7 +77,7 @@ EGM 维护两个智能体目录：
 
 每次独立评审都必须派生一个对应插件注册评审员类型的新原生 Agent，例如 `egm:egm-zoom-out`。切勿分叉（fork）当前对话或恢复（resume）之前的评审员。仅传递任务指令、评审目标、专家角色/文档标准路径以及显式提供的金鱼上下文；切勿复制父会话的讨论过程。
 
-`.claude-plugin/agents/` 中的 Claude 适配器声明了 `tools: [Read, Grep, Glob]`、`model: inherit` 和 `omitClaudeMd: true`。每个适配器通过 `${CLAUDE_PLUGIN_ROOT}` 读取 `agents/` 中的权威专家角色。请勿将 Claude 工具名写入共享专家角色的 frontmatter 中：其他宿主可能会按自己的规则解析 `tools` 字段。评审员不能编辑文件或运行 Shell 命令，且未配置任何持久化 `memory`。合成器适配器声明 `tools: [Agent, Read, Grep, Glob, Write]`，使其能够派生评审员并写出报告，但不能运行 Shell 命令或使用当前会话的 MCP 连接器。插件子智能体的 `tools` 字段无法将 Write 限制在特定路径上，且 Claude Code 会忽略插件子智能体中的 `hooks` 与 `permissionMode`。因此，适配器中“仅写入所请求的报告或简报”的规则属于提示词指令，而非宿主强制限制；写入操作仍遵循当前会话的权限规则。派生 `egm:egm-synthesizer` 时，请在其任务说明中明确指明所使用的产物目录。否则它无法看到用户提示词中的覆盖行，且会忽略仅由智能体指令文件指定、但落在工作目录之外的文件夹。由于它没有 Shell 工具，它按字面路径检查目录，不跟随符号链接。
+`.claude-plugin/agents/` 中的 Claude 适配器声明了 `tools: [Read, Grep, Glob]`、`model: inherit` 和 `omitClaudeMd: true`。每个适配器通过 `${CLAUDE_PLUGIN_ROOT}` 读取 `agents/` 中的权威专家角色。请勿将 Claude 工具名写入共享专家角色的 frontmatter 中：其他宿主可能会按自己的规则解析 `tools` 字段。评审员不能编辑文件或运行 Shell 命令，且未配置任何持久化 `memory`。合成器适配器声明 `tools: [Agent, Read, Grep, Glob, Write]`，使其能够派生评审员并写出报告，但不能运行 Shell 命令或使用当前会话的 MCP 连接器。插件子智能体的 `tools` 字段无法将 Write 限制在特定路径上，且 Claude Code 会忽略插件子智能体中的 `hooks` 与 `permissionMode`。因此，适配器中“仅写入所请求的报告或简报”的规则属于提示词指令，而非宿主强制限制；写入操作仍遵循当前会话的权限规则。派生 `egm:egm-synthesizer` 时，请在其任务说明中明确指明你所使用的产物目录。否则它既看不到来自用户提示词的那一行配置，也会丢弃仅在智能体指令文件中指定、但位于工作目录之外的文件夹。由于它没有 Shell 工具，它会按字面路径检查该目录，而不跟随符号链接。
 引导初始化编排器适配器仅允许使用 `Agent`、`Bash`、`Read`、`Grep`、`Glob`、`Write` 和 `Edit` 进行本地发现与文档编写。它将工作子智能体路由至引导初始化的 `SKILL.md`，使其返回 JSON 格式的 `subtree_index` 而非散文，并由父级处理修正。Bash 仍受常规权限规则约束，并非文件系统或网络沙箱。
 评审员无法打开 URL。切勿在 `GoldfishContext` 中向 Claude 评审员传递文档 URL：请先将原始页面保存为工作区中的文件，再传递该文件路径。
 

@@ -56,7 +56,7 @@ cp -R plugin.json README.md LICENSE skills agents resources docs assets ~/.gemin
 | Codex | `.codex-plugin/plugin.json`、`.agents/plugins/marketplace.json` | `skills` 路径 | 不单独随包附带；通用子智能体直接读取专家角色文件 |
 | ChatGPT | `plugin.json`、`.codex-plugin/plugin.json`；工作区导入使用 `.agents/plugins/marketplace.json` | `skills` 路径 | 检测当前会话中的原生工具；通用智能体直接读取专家角色 |
 | omp | `.claude-plugin/plugin.json`、`.claude-plugin/marketplace.json`（Claude 兼容回退） | `skills/`（默认） | 来自 `agents/` / `.claude-plugin/agents/` 的专家角色注册为原生 `task` 智能体 |
-| Muse | `.claude-plugin/plugin.json`（Claude 兼容回退） | `skills/`（默认） | 10 个适配器导入为智能体；不支持工具投影限制 |
+| Muse | `.claude-plugin/plugin.json`（Claude 兼容回退） | `skills/`（默认） | 10 个适配器导入为智能体；不支持工具投影 |
 
 专家角色提示词存放在 `agents/` 中，这也是 Antigravity 扫描子智能体的目录。每个专家角色都带有 `name` 与 `description` frontmatter，因此加载 `agents/*.md` 的宿主环境会将它们注册为具名子智能体（`egm-design`、`egm-zoom-out` 等）。
 
