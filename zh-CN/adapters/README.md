@@ -46,8 +46,8 @@ flowchart TD
 | 防线 | 源码位置 | 检查逻辑 | 防范风险 |
 | :--- | :--- | :--- | :--- |
 | **拒绝覆盖** | L33–34 | `destination.exists() or destination.is_symlink()` | 防止覆盖已有目录或利用悬空符号链接劫持写入目标 |
-| **禁止通配符与模板字符** | L37–40 | 拒绝反斜杠 `\` 及 `*?[]{}!@`$\n\r`（对 `resolve()` 后的真实父路径一并检查） | 防止路径中的 glob 元字符扩大 `external_directory` 放行范围，或破坏 Prompt / Shell 模板 |
-| **禁止路径含 `.env.`** | L43–44 | `".env." in str(destination).lower()` | OpenCode 的 `read` 规则匹配工作树相对路径且 `*` 跨越 `/`，若安装路径本身包含 `.env.`，`"*.env.*": "deny"` 会误杀整个 `bundle/` 的读取 |
+| **禁止通配符与模板字符** | L37–40 | 拒绝反斜杠 `\` 及 ``*?[]{}!@`$\n\r``（对 `resolve()` 后的真实父路径一并检查） | 防止路径中的 glob 元字符扩大 `external_directory` 放行范围，或破坏 Prompt / Shell 模板 |
+| **禁止路径含 `.env.`** | L43–44 | `".env." in str(destination).lower()` | OpenCode 的 `read` 规则匹配工作树相对路径且 glob 中的 `*` 会跨目录层级匹配（跨越 `/`），若安装路径本身包含 `.env.`，`"*.env.*": "deny"` 会误杀整个 `bundle/` 的读取 |
 | **禁止装入源码树内部** | L45–46 | `destination.is_relative_to(ROOT)` | 防止 `shutil.copytree` 递归复制导致死循环，或污染 Git 源码工作区 |
 
 ### 3.2 权限模型对比：大象编排者 (`egm`) vs. 金鱼评审员 (`egm-*`)

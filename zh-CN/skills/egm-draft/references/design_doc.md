@@ -155,6 +155,6 @@
 
 --------------------------------------------------------------------------------
 
-<!-- Provenance: Indicates initial structural drafting via EGM. -->
+<!-- 来源标注（Provenance）：表明本文档的初始结构化起草由 EGM 完成。 -->
 
 *Drafted with EGM*

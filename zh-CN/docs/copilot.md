@@ -132,4 +132,4 @@ EGM_COPILOT_OFFLINE=1 pytest tests/unit
 - [CLI 命令参考](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference)
 - [官方 SDK 协议操作](https://github.com/github/copilot-sdk/blob/main/python/copilot/generated/rpc.py)
 
-这些参考资料描述的是宿主文档能力，而非 EGM 运行时测试证据。
+这些参考资料描述的是功能特性，而非 EGM 运行时测试证据。

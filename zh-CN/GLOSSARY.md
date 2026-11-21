@@ -40,3 +40,7 @@
 | **PROPOSE FIX / CONTEST / ESCALATE / DECLINE** | 建议修复 / 提出异议 / 上报裁决 / 婉拒忽略 | `egm-resolve` 对金鱼评审意见的四大裁决分类（保留英文标签辅以中文释义） |
 | **Settled / Clean Round / Converged / Churn** | 已裁决 / 净轮次 / 已收敛 / 修复振荡 | `egm-review-loop` 控制多轮迭代终止的核心状态机判定词 |
 | **No Glazing / Sycophancy** | 禁止奉承 / 消除谄媚 | 严禁 AI 使用空洞赞美词或无原则迎合用户，必须优先质疑风险 |
+| **Single Source of Truth (SSOT)** | 单一事实来源 (SSOT) | 全仓规范资产（`skills/`、`agents/`、`resources/`）只维护一份事实源，严禁跨宿主复制正文 |
+| **Thin Adapter** | 薄适配器 | 各宿主专属目录仅保留最小路由指针与原生只读权限锁，零业务逻辑拷贝 |
+| **Fail-Closed** | 失效即阻断 / 失败关闭 (Fail-Closed) | 遇工具缺失、隔离失效、读取失败或证据冲突时立即报错中止，绝不静默降级或伪造通过 |
+| **SubagentHandback** | 子智能体交回协议 (`SubagentHandback`) | 金鱼或工作子智能体完成任务后向编排者返回的最小结构化交接消息契约 |

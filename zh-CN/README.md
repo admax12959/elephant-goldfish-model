@@ -8,7 +8,7 @@
 ## 🌟 从这里开始（强烈推荐）
 
 1. **[《从 0 到 1 第一性原理深度学习手册》](LEARNING_GUIDE.md)** —— 必读！彻底讲透大象-金鱼模型的第一性原理、四层正交架构、Prompt 工程 7 条黄金法则，以及手把手带你从 0 到 1 打造同类系统的完整蓝图。
-2. **[《统一中英文术语表（Glossary）》](GLOSSARY.md)** —— 36+ 核心术语中英对照，统一全仓翻译口径。
+2. **[《统一中英文术语表（Glossary）》](GLOSSARY.md)** —— 40 个核心术语中英对照，统一全仓翻译口径。
 3. **[项目原版 README 中文版](README_ORIG.md)** —— 快速认识 EGM 的定位、安装方式与 8 个核心技能。
 
 ---
@@ -36,15 +36,15 @@
 ### 3. 子智能体人格层（`zh-CN/agents/`，共 10 个）
 > 零上下文只读“金鱼”评审团与编排器源码级 Prompt 翻译（每篇附第一性原理导读）。
 - [agents/synthesizer.md](agents/synthesizer.md) — 蜂群编排与输出合成器 (`egm-synthesizer`)
-- [agents/zoom_out.md](agents/zoom_out.md) — 怀疑论架构师 (`egm-zoom-out`)
-- [agents/inventive_catalyst.md](agents/inventive_catalyst.md) — TRIZ 发明催化师 (`egm-inventive-catalyst`)
-- [agents/comprehension.md](agents/comprehension.md) — 零先验新手读者 (`egm-comprehension`)
-- [agents/design_critic.md](agents/design_critic.md) — 敌对式设计批评者 (`egm-design`)
-- [agents/structural.md](agents/structural.md) — 结构布局验证器 (`egm-structural`)
-- [agents/style.md](agents/style.md) — 技术文案编辑 (`egm-style`)
-- [agents/implementation_readiness.md](agents/implementation_readiness.md) — 务实技术负责人 (`egm-implementation-readiness`)
-- [agents/codebase_details.md](agents/codebase_details.md) — 迂腐级代码库审计员 (`egm-codebase-details`)
-- [agents/bootstrap_orchestrator.md](agents/bootstrap_orchestrator.md) — 代码库初始化并行编排器 (`egm-bootstrap-orchestrator`)
+- [agents/zoom_out.md](agents/zoom_out.md) — 怀疑论架构师 / 拉远视角金鱼 (`egm-zoom-out`)
+- [agents/inventive_catalyst.md](agents/inventive_catalyst.md) — TRIZ 发明催化金鱼 (`egm-inventive-catalyst`)
+- [agents/comprehension.md](agents/comprehension.md) — 零先验新手读者 / 理解度金鱼 (`egm-comprehension`)
+- [agents/design_critic.md](agents/design_critic.md) — 对抗式设计批评者 (`egm-design`)
+- [agents/structural.md](agents/structural.md) — 结构排版校验器 (`egm-structural`)
+- [agents/style.md](agents/style.md) — 技术文案编辑 / 文风金鱼 (`egm-style`)
+- [agents/implementation_readiness.md](agents/implementation_readiness.md) — 务实技术负责人 / 实现就绪金鱼 (`egm-implementation-readiness`)
+- [agents/codebase_details.md](agents/codebase_details.md) — 严谨苛刻的代码库细节审计员 (`egm-codebase-details`)
+- [agents/bootstrap_orchestrator.md](agents/bootstrap_orchestrator.md) — 代码库引导并行编排器 (`egm-bootstrap-orchestrator`)
 
 ### 4. 核心技能工作流层（`zh-CN/skills/`，共 8 大技能完整翻译）
 每个技能目录均完整翻译了 `SKILL.md`、`TEST.md`、`test_scenarios.yaml`、`agents/openai.yaml` 及 `references/`：
@@ -52,7 +52,7 @@
 - [egm-brainstorm](skills/egm-brainstorm/SKILL.md) — 交互式 7 棱镜头脑风暴
 - [egm-draft](skills/egm-draft/SKILL.md) — 分节式规格编译与语义分割
 - [egm-review](skills/egm-review/SKILL.md) — 五阶段金鱼隔离评审流水线
-- [egm-review-loop](skills/egm-review-loop/SKILL.md) — 通用敌对式循环评审状态机
+- [egm-review-loop](skills/egm-review-loop/SKILL.md) — 通用对抗式循环评审状态机
 - [egm-resolve](skills/egm-resolve/SKILL.md) — 大象上下文裁决与人类审批闭环
 - [egm-drift-report](skills/egm-drift-report/SKILL.md) — 文档与源码漂移巡检器
 - [egm-lite](skills/egm-lite/SKILL.md) — 轻量级五步单回合工程协议
@@ -64,12 +64,12 @@
 - **官网文档（`docs/site/`）**：[guide.md](docs/site/guide.md) | [install.md](docs/site/install.md) | [getting-started.md](docs/site/getting-started.md) | [workflow.md](docs/site/workflow.md) | [skills.md](docs/site/skills.md) 及 8 个技能专页
 - **全部 20 篇架构与功能设计文档（`docs/designs/`）**：从 [docs/designs/README.md](docs/designs/README.md) 索引进入
 
-### 6. GitHub Copilot 代理适配文件（`zh-CN/com.github.copilot/agents/`）
-- 全部 9 个 `.agent.md` 适配定义文件的完整中文版（入口 [egm.agent.md](com.github.copilot/agents/egm.agent.md) 及 8 个评审代理）
+### 6. GitHub Copilot 智能体适配文件（`zh-CN/com.github.copilot/agents/`）
+- 全部 9 个 `.agent.md` 适配定义文件的完整中文版（入口 [egm.agent.md](com.github.copilot/agents/egm.agent.md) 及 8 个评审智能体）
 
 ### 7. 工程代码、多宿主清单、打包与测试体系中文架构导读
 > 面向想读懂底层代码实现、从 0 到 1 复刻工程护城河的开发者：
-- [manifests/README.md](manifests/README.md) — 单一权威来源 + 多宿主清单/薄适配器架构深度解析
+- [manifests/README.md](manifests/README.md) — 单一事实来源 + 多宿主清单/薄适配器架构深度解析
 - [adapters/README.md](adapters/README.md) — `adapters/opencode/install.py` 逐函数中文导读与安全隔离设计
 - [scripts/README.md](scripts/README.md) — `pack_plugin.py` 与 `prepare_release.py` 确定性打包与发布源码解析
 - [tests/README.md](tests/README.md) — 全部单元测试不变量、集成探针与 Fail-Closed Trace 校验器导读

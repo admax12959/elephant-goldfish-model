@@ -75,7 +75,7 @@ sequenceDiagram
 | 类型 | 示例 | 读取的文件 |
 | :--- | :------ | :--------- |
 | **下一步（Next step）** | “我现在该做什么？” | 工作区中的产物文件名以及阶段表（步骤 2） |
-| **技能选择（Skill choice）** | “哪个技能用来检查我的 README 与代码是否一致？”也包括 EGM 任务请求，例如“帮我修一下草案”：指出负责该工作的技能，不做任何编辑。 | 仅读取 `skills/*/SKILL.md` 的 frontmatter |
+| **技能选择（Skill choice）** | “哪个技能用来检查我的 README 与代码是否一致？”也包括 EGM 任务请求，例如“帮我修改草稿”：指出负责该工作的技能，不做任何编辑。 | 仅读取 `skills/*/SKILL.md` 的 frontmatter |
 | **故障排查（Troubleshooting）** | “评审员说它无法读取自己的智能体人格文件。” | `docs/harnesses.md` 与宿主环境指南 |
 | **超出范围（Out of scope）** | “这个 TypeScript 报错怎么修？” | 无。回复说明 `/egm-ask` 仅覆盖 EGM。 |
 
@@ -85,7 +85,7 @@ sequenceDiagram
 
 技能按与 `egm-draft` 输入采集（`egm-draft` 步骤 1）相同的位置和顺序查找 EGM 产物：先查工作目录，再查宿主环境的产物目录（见 [harnesses.md](../harnesses.md) 的“Artifact Directory”一节），最后查 `scratch/`。用户提示词或智能体指令文件中的 `EGM artifact directory: <path>` 行会替代工作目录，具体规则见 `claude.md`。
 
-技能按文件名检查文件是否存在。它从工作区读取的唯一文件内容是 `goldfish_review_report.md` 的前几行：即 `Status: resolved` 行和 `**Target:**` 行。仅当该目标与用户所指的设计文档一致时，它才建议解决（resolution）之后的下一步。
+技能按文件名检查文件是否存在。它从工作区读取的唯一文件内容是 `goldfish_review_report.md` 的前几行：即 `Status: resolved` 行和 `**Target:**` 行。仅当该目标与用户所指的设计文档一致时，它才建议裁决解决（resolution）之后的下一步。
 
 文件的存在仅作为阶段线索，不能作为工作流已完成的证据。评审报告可能是不完整的，或是之前某次运行遗留下来的。如果文件不足以确定当前目标所处的阶段，技能会将阶段报告为未知，列出它看到的所有产物，并询问用户指的是哪一次运行或哪一个目标。
 
@@ -98,14 +98,14 @@ sequenceDiagram
 | `design_draft.md`（`egm-draft`），且无对应的 `docs/designs/<feature>.md` | 起草进行中 | 继续 `egm-draft`，直到写入 `docs/designs/<feature>.md` |
 | `docs/designs/<feature>.md`，且无评审报告 | 评审就绪 | `egm-review docs/designs/<feature>.md` |
 | `zoom_out_report.md`、`comprehension_report.md`、`critic_report.md`、`intermediate_zoom_out_report.md`、`implementation_readiness_report.md` 或 `consolidated_review_report.md`（`egm-review`） | 评审已开始；完成状态未知 | 询问该目标的评审是否已完成。若已完成，对其发现项运行 `egm-resolve`；若未完成，继续挂起的评审 |
-| `goldfish_review_report.md`（`egm-resolve`）且不含 `Status: resolved` | 裁决解决进行中 | 返回正在等待回答的解决步骤，或重新运行 `egm-resolve` |
-| `goldfish_review_report.md` 且包含 `Status: resolved` | 发现项已解决 | 对设计文档进行人工评审（`getting_started.md` 第 4 步）；仅在下方所有检查通过后才建议进入实现 |
+| `goldfish_review_report.md`（`egm-resolve`）且不含 `Status: resolved` | 裁决解决进行中 | 返回正在等待回答的裁决解决步骤，或重新运行 `egm-resolve` |
+| `goldfish_review_report.md` 且包含 `Status: resolved` | 发现项已裁决解决 | 对设计文档进行人类评审（`getting_started.md` 第 4 步）；仅在下方所有检查通过后才建议进入实现 |
 
 **建议进入实现之前的检查。** 仅凭已签入的设计文档或已解决的报告，不足以作为开始实现的依据。技能仅在以下所有条件同时满足时才建议进入实现：
 
 1.  **目标明确。** 用户明确指定了设计文档，或者已解决报告中的 `**Target:**` 行精确指向唯一一个 `docs/designs/<feature>.md` 且经用户确认。如果有多个设计文档可能匹配，技能应询问用户指的是哪一个。
 2.  **该目标没有挂起的评审。** 如果存在评审报告，用户需确认该评审已完成，且近期对话中没有任何评审或解决步骤正在等待回复。
-3.  **没有挂起的审批。** 技能无法看到人类对设计文档的审批，因此它会询问该设计是否已获批准。在用户确认之前，它建议执行人工评审步骤而非直接实现。
+3.  **没有挂起的审批。** 技能无法看到人类对设计文档的审批，因此它会询问该设计是否已获批准。在用户确认之前，它建议执行人类评审步骤而非直接实现。
 
 若任一检查未通过，技能改为建议执行该挂起的步骤。它不会自行代答或恢复该步骤（参见“规则”一节）。
 
@@ -131,7 +131,7 @@ sequenceDiagram
 
 ### 规则：挂起门禁与只读约束
 
-**挂起门禁（Pending gates）。** 用户可能在另一个技能等待回答时运行 `/egm-ask`，例如停在 `egm-resolve` 的解决门禁处。该门禁接受自由文本输入（包括自定义指令）。`/egm-ask` 不会代答、恢复或操作挂起的门禁。其只读规则在发出回复后即结束，由用户直接回复挂起的门禁。
+**挂起门禁（Pending gates）。** 用户可能在另一个技能等待回答时运行 `/egm-ask`，例如停在 `egm-resolve` 的裁决解决门禁处。该门禁接受自由文本输入（包括自定义指令）。`/egm-ask` 不会代答、恢复或操作挂起的门禁。其只读规则在发出回复后即结束，由用户直接回复挂起的门禁。
 
 **只读约束（Read-only）。** 该技能运行在主对话中，因为下一步指引和故障排查的回答依赖于用户最近的对话轮次以及他们刚刚看到的报错文本。运行在新鲜上下文中的金鱼评审员（参见 [architecture.md](architecture.md)）既看不到前者也看不到后者。在 Claude Code 中，EGM 技能运行在主上下文中，只有子智能体适配器才拥有受限的工具列表（见 `claude.md`）。因此，只读规则由技能指令和行为测试场景（参见“测试”一节）共同强制执行。与其他 EGM 技能一样，该技能设置 `disable-model-invocation: true`，确保仅在用户主动调用时运行。
 
@@ -190,7 +190,7 @@ sequenceDiagram
 3.  当前目标存在评审报告：在建议 `egm-resolve` 之前先询问评审是否已完成，且不绕过挂起的门禁。
 4.  存在 `critic_report.md` 且用户表示评审尚未完成：建议继续 `egm-review`，而非重新开始。
 5.  同时存在 `concepts_brief.md` 和 `docs/designs/x.md`：指明最新阶段并列出两个文件。
-6.  “请帮我修改草案”：不做任何编辑，并指明负责该工作的技能。
+6.  “请帮我修改草稿”：不做任何编辑，并指明负责该工作的技能。
 7.  无关的编程问题：回复说明其仅覆盖 EGM。
 8.  在 `egm-resolve` 门禁挂起时调用：回答问题、不做任何编辑，且不选择任何门禁选项。
 9.  “哪个技能用来对比我的设计文档和代码？”：推荐 `egm-drift-report` 并引用其 `SKILL.md`。

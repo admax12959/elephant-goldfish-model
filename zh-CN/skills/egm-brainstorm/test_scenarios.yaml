@@ -71,7 +71,7 @@ scenarios:
     system_prompt:
       skill_file: "skills/egm-brainstorm/SKILL.md"
     turns:
-      - user_input: "金鱼评审与迭代循环已完成。我已审阅并完全批准定稿后的 concepts_brief.md 产物。请执行步骤 4（定稿与交接）。"
+      - user_input: "金鱼评审与迭代循环已完成。我已评审并完全批准定稿后的 concepts_brief.md 产物。请执行步骤 4（定稿与交接）。"
         assertions:
           - type: "required_pattern"
             pattern: "Publish concepts_brief\\.md as RFC for team feedback"
@@ -135,7 +135,7 @@ scenarios:
             message: "头脑风暴不得将贡献者的否决归因于维护者。"
 
   - scenario_id: "inventive_catalyst_analysis_synthesis"
-    description: "断言 ## Analysis 章节记录了发明矛盾、目录模式建议与次生权衡。"
+    description: "断言 ## Analysis 章节记录了发明矛盾、模式清单中的建议模式（catalog pattern recommendations）与次生权衡。"
     eval_type: "deterministic"
     system_prompt:
       skill_file: "skills/egm-brainstorm/SKILL.md"
@@ -159,4 +159,4 @@ scenarios:
             message: "简报必须保留催化剂的早退结论，不得丢弃。"
           - type: "forbidden_pattern"
             pattern: "(?i)\\b(Segmentation|Preliminary Action|Beforehand Cushioning|Intermediary|Cheap Dispensables)\\b"
-            message: "当催化剂未发现矛盾时，简报不得凭空捏造目录模式。"
+            message: "当催化剂未发现矛盾时，简报不得凭空捏造模式清单中的变换模式。"

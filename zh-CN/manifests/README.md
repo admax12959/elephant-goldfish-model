@@ -2,7 +2,7 @@
 
 > **原文路径**：`plugin.json`、`pyproject.toml`、`.claude-plugin/`、`.codex-plugin/`、`.cursor-plugin/`、`.plugin/`、`.windsurf/`、`.agents/` | 本文档为中文架构导读与零到一扩展实战手册，保留英文原文件以便对照。
 >
-> 💡 **第一性原理提示**：AI 编程宿主环境（Harness）的插件规范目前高度碎片化——Claude Code、Codex、Cursor、Windsurf、OpenCode、Antigravity 各有各的目录约定、权限字段与变量注入方式。如果为每个宿主复制一份完整的技能与人格文本，不出两周就会发生灾难性的**文档漂移（Drift）**。EGM 的解法是：**单一事实来源（Single Source of Truth）+ 薄适配器（Thin Adapters）**——所有核心智慧只写一遍，各宿主目录只负责“路由指针 + 工具/上下文权限锁”。
+> 💡 **第一性原理提示**：AI 编程宿主环境（Harness）的插件规范目前高度碎片化——Claude Code、Codex、Cursor、Windsurf、OpenCode、Antigravity 各有各的目录约定、权限字段与变量注入方式。如果为每个宿主复制一份完整的技能与人格文本，不出两周就会发生灾难性的**文档漂移（Drift）**。EGM 的解法是：**单一事实来源（Single Source of Truth, SSOT）+ 薄适配器（Thin Adapters）**——所有核心智慧只写一遍，各宿主目录只负责“路由指针 + 工具/上下文权限锁”。
 
 ---
 
@@ -35,7 +35,7 @@ flowchart TB
 ```
 
 **薄适配器的铁律**：
-1. **零正文复制**：宿主目录中的 Agent 壳或 Workflow 文件绝不拷贝 `agents/*.md` 或 `skills/*/SKILL.md` 的业务指令，只写 10~20 行“先读规范文件 + 本宿主权限约束 + 失败关闭兜底”。
+1. **零正文复制**：宿主目录中的 Agent 壳或 Workflow 文件绝不拷贝 `agents/*.md` 或 `skills/*/SKILL.md` 的业务指令，只写 10~20 行“先读规范文件 + 本宿主权限约束 + 失效即阻断（Fail-Closed）兜底”。
 2. **权限下沉到宿主原语**：真正锁死金鱼（零上下文评审员）只读且隔离的，是各宿主原生的声明字段（如 Claude 的 `tools: [Read, Grep, Glob]` + `omitClaudeMd: true`，Cursor 的 `readonly: true` + `permissionMode: readonly`），而不是单靠口头 Prompt 祈祷。
 3. **版本强同步**：5 份发行清单（`plugin.json`、`.claude-plugin/plugin.json`、`.codex-plugin/plugin.json`、`.cursor-plugin/plugin.json`、`.plugin/plugin.json`）的 `version` 字段必须完全一致，并由 `scripts/prepare_release.py` 和 `tests/unit/test_harnesses.py` 强制校验。
 
@@ -63,7 +63,7 @@ EGM 的插件运行时本身不需要安装 Python 包，但仓库的测试与�
 | **`.claude-plugin/`** | `plugin.json`、`marketplace.json`、`icon.png`、`agents/*.md`（10 个） | Claude Code 通过 `marketplace.json`（`source: "./"`）发现插件，按 `plugin.json` 的 `agents` 数组加载全部 10 个子智能体 | Frontmatter 声明 `tools: [Read, Grep, Glob]`、`omitClaudeMd: true`（剥离项目 CLAUDE.md 防上下文污染） | 使用宿主变量 `${CLAUDE_PLUGIN_ROOT}` 定位 `agents/*.md` 与 `resources/` |
 | **`.codex-plugin/`** | `plugin.json` | 声明 `"skills": "./skills/"` 与 `"requires_local_executor": true`，配置 Codex 商店 `interface` 与图标 | 依赖本地执行器与隔离的子智能体派生；同时在 `skills/*/agents/openai.yaml` 提供技能级元数据 | 相对包根目录 `./skills/` 与 `./assets/icon.svg` |
 | **`.agents/`** | `plugins/marketplace.json` | 面向 Codex / 通用 Agent 生态的插件市场索引（`source: "./"`、`policy.installation: "AVAILABLE"`、`authentication: "ON_INSTALL"`） | 指向仓库根共享包，由具体宿主清单接管权限 | 相对路径 `"./"` |
-| **`.cursor-plugin/`** | `plugin.json`、`marketplace.json`、`agents/*.md`（8 个评审员）、`rules/egm.mdc`、`assets/` | `plugin.json` 指向 `./skills/`、`./.cursor-plugin/agents/`、`./.cursor-plugin/rules/` | 8 个薄代理声明 `readonly: true`、`permissionMode: readonly`、`is_background: false`；`rules/egm.mdc` 强制直派评审员、禁止复用会话、遇阻即停（严禁父会话代演金鱼） | **不依赖 Markdown 变量替换**：由 `rules/egm.mdc` 指示父智能体从 `SKILL.md` 路径向上回溯三级确定绝对路径 `EGM_ROOT`，作为任务文本参数传给子智能体 |
+| **`.cursor-plugin/`** | `plugin.json`、`marketplace.json`、`agents/*.md`（8 个评审员）、`rules/egm.mdc`、`assets/` | `plugin.json` 指向 `./skills/`、`./.cursor-plugin/agents/`、`./.cursor-plugin/rules/` | 8 个薄智能体壳声明 `readonly: true`、`permissionMode: readonly`、`is_background: false`；`rules/egm.mdc` 强制直派评审员、禁止复用会话、遇阻即停（严禁父会话代演金鱼） | **不依赖 Markdown 变量替换**：由 `rules/egm.mdc` 指示父智能体从 `SKILL.md` 路径向上回溯三级确定绝对路径 `EGM_ROOT`，作为任务文本参数传给子智能体 |
 | **`.plugin/`** | `plugin.json` | 遵循开放规范 `https://agent-plugins.org/schemas/1.0.0/plugin.schema.json` 的最小标准清单（如 Copilot 等兼容生态） | 与根包共享技能与人格定义，具体隔离规则见对应文档与适配器测试 | 相对仓库根 |
 | **`.windsurf/`** | `rules/egm.md`、`workflows/egm-*.md`（8 个） | `rules/egm.md`（`trigger: model_decision`）作为全局路由契约；8 个 `workflows/` 文件作为轻量斜杠入口 | 要求使用宿主只读子智能体配置（如 Devin CLI 中的 `subagent_explore`）；**若宿主无法派生新鲜上下文只读子智能体，立即中止并报告“同上下文评审不是金鱼评审”** | 要求工作区根目录检出，直接引用根 `skills/<name>/SKILL.md` |
 
